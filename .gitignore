@@ -1,3 +1,11 @@
+# prednet
+*model_data_keras2/
+*test_data/
+*results/
+
+# pycharm
+*.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
