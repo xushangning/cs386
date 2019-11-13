@@ -52,9 +52,20 @@ def init_model(nt=10):
     return test_model
 
 
-def predict(test_model, X_test, batch_size=10):
-    X_hat = test_model.predict(X_test.transpose((0, 1, 4, 2, 3)), batch_size)
-    return X_hat.transpose((0, 1, 3, 4, 2))
+# predict next frame
+# fixed means predict based on fixed input
+# recur means the predicted result is used as next frame of input
+def predict(test_model, X_test, nt, mode='fixed', initial=2, batch_size=10):
+    if mode == 'fixed':
+        X_hat = test_model.predict(X_test.transpose((0, 1, 4, 2, 3)), batch_size)
+        return X_hat.transpose((0, 1, 3, 4, 2))
+    if mode == 'feedback':
+        new_test = X_test.transpose((0, 1, 4, 2, 3)).copy()
+        for i in range(initial, nt):
+            print('Predicting the {}-th frame'.format(i + 1))
+            X_hat = test_model.predict(new_test, batch_size)
+            new_test[:, i, :, :, :] = X_hat[:, -1, :, :, :]
+        return X_hat.transpose((0, 1, 3, 4, 2))
 
 
 # Compare MSE of PredNet predictions vs. using last frame.  Write results to prediction_scores.txt
@@ -104,9 +115,10 @@ def plot_pred(X_test, X_hat, nt=10, n_plot=100):
 def main():
     # number of frames in the sequence
     nt = 5
+    # batch_size = 8
     test_model = init_model(nt)
     X_test = get_static_test_data('test_data/static', nt)
-    X_hat = predict(test_model, X_test, nt)
+    X_hat = predict(test_model, X_test, nt, 'feedback', 2)
     # print(X_hat.shape)
     # print(X_test.shape)
     mse_error(X_test, X_hat)
