@@ -13,7 +13,7 @@ from keras.layers import Input, Dense, Flatten
 from prednet import PredNet
 # from data_utils import SequenceGenerator
 
-from preprocess import *
+from img_process import *
 
 matplotlib.use('Agg')
 
@@ -69,24 +69,24 @@ def predict(test_model, X_test, nt, mode='fixed', initial=2, batch_size=10):
 
 
 # Compare MSE of PredNet predictions vs. using last frame.  Write results to prediction_scores.txt
-def mse_error(X_test, X_hat):
+def mse_error(X_test, X_hat, name=""):
     mse_model = np.mean((X_test[:, 1:] - X_hat[:, 1:]) ** 2)  # look at all timesteps except the first
     mse_prev = np.mean((X_test[:, :-1] - X_test[:, 1:]) ** 2)
     if not os.path.exists(RESULTS_SAVE_DIR):
         os.mkdir(RESULTS_SAVE_DIR)
-    f = open(RESULTS_SAVE_DIR + 'prediction_scores.txt', 'w')
+    f = open(RESULTS_SAVE_DIR + 'prediction_scores_' + name + '.txt', 'w')
     f.write("Model MSE: %f\n" % mse_model)
     f.write("Previous Frame MSE: %f" % mse_prev)
     f.close()
 
 
 # Plot some predictions
-def plot_pred(X_test, X_hat, nt=10, n_plot=100):
+def plot_pred(X_test, X_hat, nt=10, n_plot=100, name=""):
     aspect_ratio = float(X_hat.shape[2]) / X_hat.shape[3]
     plt.figure(figsize=(nt, 2 * aspect_ratio))
     gs = gridspec.GridSpec(2, nt)
     gs.update(wspace=0., hspace=0.)
-    plot_save_dir = os.path.join(RESULTS_SAVE_DIR, 'prediction_plots/')
+    plot_save_dir = os.path.join(RESULTS_SAVE_DIR, 'prediction_plots_' + name + '/')
     if not os.path.exists(plot_save_dir):
         os.mkdir(plot_save_dir)
     plot_idx = np.random.permutation(X_test.shape[0])[:n_plot]
@@ -112,17 +112,27 @@ def plot_pred(X_test, X_hat, nt=10, n_plot=100):
         plt.clf()
 
 
+def adjacent_frame_mse(X_hat):
+    n_frames = X_hat.shape[1]
+    mses = [np.mean((X_hat[:, i] - X_hat[:, i + 1]) ** 2) for i in range(1, n_frames - 1)]
+    return mses
+
+
 def main():
     # number of frames in the sequence
     nt = 5
     # batch_size = 8
     test_model = init_model(nt)
-    X_test = get_static_test_data('test_data/static', nt)
+    X_test = get_static_test_data('test_data/control', nt)
     X_hat = predict(test_model, X_test, nt, 'feedback', 2)
-    # print(X_hat.shape)
-    # print(X_test.shape)
-    mse_error(X_test, X_hat)
-    plot_pred(X_test, X_hat, nt)
+    np.save('results/pred_control', X_hat)
+    print(X_hat.shape)
+    print(X_test.shape)
+
+    print(adjacent_frame_mse(X_hat))
+
+    mse_error(X_test, X_hat, name='control')
+    plot_pred(X_test, X_hat, nt, name='control')
 
 
 if __name__ == '__main__':
