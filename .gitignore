@@ -3,6 +3,14 @@
 *test_data/
 *results/
 
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.pdf
+*.synctex.gz
+
 # pycharm
 *.idea/
 
