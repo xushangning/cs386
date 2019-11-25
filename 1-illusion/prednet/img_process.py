@@ -73,24 +73,29 @@ def get_raw_images(IMG_DIR, size=(160, 128)):
     return raw
 
 
-def save_images_from_np(X_hat, raw_img):
+def save_images_from_np(X_hat, raw_img, outname):
+    if not os.path.exists('results/pred_'+outname):
+        os.mkdir('results/pred_'+outname)
     for j in range(X_hat.shape[0]):
         print('saving image ' + str(j) + '...')
         im = Image.fromarray((raw_img[j]*255).astype(np.uint8))
-        im.save('results/output/img' + str(j) + '-0.png')
+        im.save('results/pred_'+outname+'/img' + str(j) + '-0.png')
 
         frames = X_hat[j]
         for i in range(1, frames.shape[0]):
             im = Image.fromarray((frames[i]*255).astype(np.uint8))
-            im.save('results/output/img' + str(j) + '-' + str(i) + '.png')
+            im.save('results/pred_'+outname+'/img' + str(j) + '-' + str(i) + '.png')
             # plt.imshow(frames[i])
             # plt.axis('off')
             # plt.tight_layout()
             # plt.savefig('results/output/img' + str(j) + '-' + str(i) + '.png', bbox_inches='tight', pad_inches=0.0)
             # plt.show()
 
+def main():
+    X_hat = np.load('./results/pred_rotate0.npy')
+    raw_img = get_raw_images('test_data/static')
+    save_images_from_np(X_hat, raw_img, 'rotate0')
+
 
 if __name__ == '__main__':
-    X_hat = np.load('./results/pred_rotate.npy')
-    raw_img = get_raw_images('test_data/static')
-    save_images_from_np(X_hat, raw_img)
+    main()
