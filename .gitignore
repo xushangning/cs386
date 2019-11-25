@@ -3,14 +3,6 @@
 *test_data/
 *results/
 
-*.aux
-*.bbl
-*.blg
-*.fdb_latexmk
-*.fls
-*.pdf
-*.synctex.gz
-
 # pycharm
 *.idea/
 
@@ -118,3 +110,17 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# latex & report
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.pdf
+*.synctex.gz
+*.out
+*.pptx
+
+# vscode
+.vscode/
