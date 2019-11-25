@@ -1,3 +1,9 @@
+# data
+data/
+
+# pickle
+*.pkl
+
 # prednet
 *model_data_keras2/
 *test_data/
