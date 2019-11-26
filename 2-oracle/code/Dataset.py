@@ -4,12 +4,20 @@ from PIL import Image
 import numpy as np
 from keras.utils import to_categorical
 
-# resize images to following size
-IMG_HEIGHT = 89
-IMG_WIDTH = 81
+# default resize images to following size
+# IMG_HEIGHT = 89
+# IMG_WIDTH = 81
+IMG_HEIGHT = 64
+IMG_WIDTH = 64
 
 
 class Dataset:
+    @staticmethod
+    def aug_filter(fname, keys=None):
+        if keys is not None:
+            return True
+        return True
+
     # convert the folder name into categories
     @staticmethod
     def folder_to_cat(folder, num_cat=10):
@@ -23,7 +31,7 @@ class Dataset:
         return np.array(img)
 
     @staticmethod
-    def get_image_folder(folder, num_cat=10, one_hot=False):
+    def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None):
         """
         get all resized images and their labels in one folder
         :param folder: folder name
@@ -32,12 +40,12 @@ class Dataset:
         :return: images, labels
         """
         path = '../dataset/' + folder + '/'
-        fnames = os.listdir(path)
+        fnames = list(filter(lambda x: Dataset.aug_filter(x, filter_keys), os.listdir(path)))
         cat = Dataset.folder_to_cat(folder, num_cat)
         imgs = []
         for fname in fnames:
             img = Dataset.get_image_file(path + fname)
-            img.resize(IMG_WIDTH, IMG_HEIGHT, Image.ANTIALIAS)
+            img.resize(IMG_HEIGHT, IMG_WIDTH, Image.ANTIALIAS)
             imgs.append(img)
         imgs = np.array(imgs)
         cats = np.repeat(cat, imgs.shape[0])
@@ -50,7 +58,7 @@ class Dataset:
         return to_categorical(cats, num_cat)
 
     @staticmethod
-    def load_data(num_cat=10, one_hot=False):
+    def load_data(num_cat=10, one_hot=False, filter_keys=None):
         """
         load all images in dataset folder
         :param num_cat: number of categories
@@ -59,11 +67,14 @@ class Dataset:
                  y: shape [N,] or [N, num_cat]
         """
         dirs = os.listdir('../dataset/')
-        X = []
+        X = None
         y = []
         for dir in dirs:
-            _X, _y = Dataset.get_image_folder(dir, num_cat)
-            X = np.concatenate([X, _X])
+            _X, _y = Dataset.get_image_folder(dir, num_cat, filter_keys)
+            if X is None:
+                X = _X
+            else:
+                X = np.concatenate([X, _X])
             y = np.concatenate([y, _y])
         if one_hot:
             y = Dataset.to_onehot(y, num_cat)
