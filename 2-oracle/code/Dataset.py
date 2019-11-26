@@ -24,6 +24,10 @@ class Dataset:
         assert num_cat in [10, 40], "Number of categories can only be 10 or 40"
         return (int(folder) - 102) // (40 / num_cat)
 
+    @staticmethod
+    def cat40_to_cat10(cats):
+        return cats // 4
+
     # read single image
     @staticmethod
     def get_image_file(fname):
