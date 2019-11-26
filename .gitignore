@@ -1,3 +1,7 @@
+# data
+*data/
+*dataset/
+
 # prednet
 *model_data_keras2/
 *test_data/
