@@ -10,11 +10,13 @@ IMG_WIDTH = 81
 
 
 class Dataset:
+    # convert the folder name into categories
     @staticmethod
     def folder_to_cat(folder, num_cat=10):
         assert num_cat in [10, 40], "Number of categories can only be 10 or 40"
         return (int(folder) - 102) // (40 / num_cat)
 
+    # read single image
     @staticmethod
     def get_image_file(fname):
         img = Image.open(fname)
@@ -22,14 +24,21 @@ class Dataset:
 
     @staticmethod
     def get_image_folder(folder, num_cat=10, one_hot=False):
+        """
+        get all resized images and their labels in one folder
+        :param folder: folder name
+        :param num_cat: number of categories, 10 or 40
+        :param one_hot: whether to use one hot encoding
+        :return: images, labels
+        """
         path = '../dataset/' + folder + '/'
         fnames = os.listdir(path)
         cat = Dataset.folder_to_cat(folder, num_cat)
         imgs = []
         for fname in fnames:
             img = Dataset.get_image_file(path + fname)
-            # print(img.shape)
-            imgs.append(img.resize((IMG_WIDTH, IMG_HEIGHT), Image.ANTIALIAS))
+            img.resize(IMG_WIDTH, IMG_HEIGHT, Image.ANTIALIAS)
+            imgs.append(img)
         imgs = np.array(imgs)
         cats = np.repeat(cat, imgs.shape[0])
         if one_hot:
@@ -42,12 +51,18 @@ class Dataset:
 
     @staticmethod
     def load_data(num_cat=10, one_hot=False):
+        """
+        load all images in dataset folder
+        :param num_cat: number of categories
+        :param one_hot: whether to use one hot encoding
+        :return: X: shape [N, IMG_HEIGHT, IMG_WIDTH],
+                 y: shape [N,] or [N, num_cat]
+        """
         dirs = os.listdir('../dataset/')
         X = []
         y = []
         for dir in dirs:
             _X, _y = Dataset.get_image_folder(dir, num_cat)
-            # print(_X.shape)
             X = np.concatenate([X, _X])
             y = np.concatenate([y, _y])
         if one_hot:
