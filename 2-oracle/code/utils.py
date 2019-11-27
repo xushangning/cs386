@@ -34,10 +34,11 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
     ax.figure.colorbar(im, ax=ax)
     # We want to show all ticks...
+    print(cm.shape)
     ax.set(xticks=np.arange(cm.shape[1]),
            yticks=np.arange(cm.shape[0]),
            # ... and label them with the respective list entries
-           xticklabels=classes, yticklabels=classes,
+           xticklabels=np.arange(classes), yticklabels=np.arange(classes),
            title=title,
            ylabel='True label',
            xlabel='Predicted label')
@@ -50,14 +51,15 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     fmt = '.2f' if normalize else 'd'
     thresh = cm.max() / 2.
     for i in range(cm.shape[0]):
-        if num_cat == 40 and (i + 1) % 4 == 0:
-            plt.plot([i+0.5, i+0.5], [-0.5, 39.5], c='k', linewidth=2)
-            plt.plot([-0.5, 39.5], [i+0.5, i+0.5], c='k', linewidth=2)
+        if classes == 40 and (i + 1) % 4 == 0:
+            plt.plot([i + 0.5, i + 0.5], [-0.5, 39.5], c='k', linewidth=2)
+            plt.plot([-0.5, 39.5], [i + 0.5, i + 0.5], c='k', linewidth=2)
         for j in range(cm.shape[1]):
             ax.text(j, i, format(cm[i, j], fmt),
                     ha="center", va="center",
                     color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
+    # plt.savefig(title, dpi=500)
     return ax
 
 
@@ -105,7 +107,7 @@ class VisualizationCallback(Callback):
         if not self.on_batch:
             self.loss_train.append(logs['loss'])
             self.acc_train.append(logs['acc'])
-        self.val_x.append(len(self.acc_train)-1)
+        self.val_x.append(len(self.acc_train) - 1)
         print("Epoch {0}: Train acc: {1:.4f}, Train loss: {2:.4f}, Val acc: {3:.4f}, Val loss: {4:.4f}".format(
             epoch, logs['acc'], logs['loss'], logs['val_acc'], logs['val_loss']
         ))

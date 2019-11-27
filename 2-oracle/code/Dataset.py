@@ -3,11 +3,13 @@ from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.utils import to_categorical
+from utils import *
 
 import imgaug as ia
 import imgaug.augmenters as iaa
 
 ALL_KEYS = ('val', 'flipped', 'affine')
+
 
 class Dataset:
     # default resize images to following size
@@ -52,7 +54,7 @@ class Dataset:
         :return: images, labels
         """
         path = '../dataset/' + folder + '/'
-        fnames = list(filter(lambda x: Dataset.aug_filter(x, filter_keys)^inclusive, os.listdir(path)))
+        fnames = list(filter(lambda x: Dataset.aug_filter(x, filter_keys) ^ inclusive, os.listdir(path)))
         cat = Dataset.folder_to_cat(folder, num_cat)
         imgs = []
         for fname in fnames:
@@ -74,7 +76,7 @@ class Dataset:
         return to_categorical(cats, num_cat)
 
     @staticmethod
-    def load_data(num_cat=10, one_hot=False, filter_keys=None, inclusive=False):
+    def load_data(num_cat=10, one_hot=False, filter_keys=None, inclusive=False, padding=0):
         """
         load all images in dataset folder
         :param num_cat: number of categories
@@ -86,7 +88,8 @@ class Dataset:
         X = None
         y = []
         for dir in dirs:
-            _X, _y = Dataset.get_image_folder(folder=dir, num_cat=num_cat, filter_keys=filter_keys, inclusive=inclusive)
+            _X, _y = Dataset.get_image_folder(folder=dir, num_cat=num_cat, filter_keys=filter_keys, inclusive=inclusive,
+                                              padding=padding)
             if X is None:
                 X = _X
             else:
@@ -111,7 +114,7 @@ class Dataset:
             os.remove(path + fname)
 
     @staticmethod
-    def clear_all(path = '../dataset/', filter_keys=None):
+    def clear_all(path='../dataset/', filter_keys=None):
         if filter_keys is None:
             filter_keys = set(ALL_KEYS) - {'val'}
         for folder in os.listdir(path):
