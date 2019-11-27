@@ -1,8 +1,11 @@
 import os
 from PIL import Image
-
 import numpy as np
+import matplotlib.pyplot as plt
 from keras.utils import to_categorical
+
+import imgaug as ia
+import imgaug.augmenters as iaa
 
 # default resize images to following size
 # IMG_HEIGHT = 89
@@ -15,7 +18,9 @@ class Dataset:
     @staticmethod
     def aug_filter(fname, keys=None):
         if keys is not None:
-            return True
+            for key in keys:
+                if key in fname:
+                    return False
         return True
 
     # convert the folder name into categories
@@ -31,11 +36,12 @@ class Dataset:
     # read single image
     @staticmethod
     def get_image_file(fname):
+        # img = np.array(Image.open(fname))
         img = Image.open(fname)
-        return np.array(img)
+        return img #.reshape(img.shape + (1,))
 
     @staticmethod
-    def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None):
+    def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None, names=False):
         """
         get all resized images and their labels in one folder
         :param folder: folder name
@@ -49,8 +55,10 @@ class Dataset:
         imgs = []
         for fname in fnames:
             img = Dataset.get_image_file(path + fname)
-            img.resize(IMG_HEIGHT, IMG_WIDTH, Image.ANTIALIAS)
-            imgs.append(img)
+            img = img.resize((IMG_HEIGHT, IMG_WIDTH), Image.ANTIALIAS)
+            imgs.append(np.array(img))
+        if names:
+            return imgs, fnames
         imgs = np.array(imgs)
         cats = np.repeat(cat, imgs.shape[0])
         if one_hot:
@@ -85,10 +93,55 @@ class Dataset:
         return X, y
 
 
+class DataAugmentation(object):
+    def __init__(self):
+        self.flip_aug = iaa.Fliplr(1.0)
+        self.slight_affine_aug = iaa.Affine(
+            scale={'x': (0.95, 1.05), 'y': (0.95, 1.05)},
+            translate_px={'x': (-5, 5), 'y': (-5, 5)},
+            rotate=(-5, 5),
+            shear=(-3, 3),
+            mode='constant',
+            cval=(255, 255)
+        )
+
+    def flip(self, imgs):
+        return self.flip_aug(images=imgs)
+
+    def slight_affine(self, imgs):
+        return self.slight_affine_aug(images=imgs)
+
+    def flip_folder(self, folder_src, folder_dst):
+        path_src = '../dataset/' + folder_src + '/'
+        path_dst = '../dataset/' + folder_dst + '/'
+        imgs, fnames = Dataset.get_image_folder(folder_src, filter_keys=['val', 'flipped'], names=True)
+        imgs = self.flip(imgs)
+        for i in range(len(imgs)):
+            prefix = fnames[i].split('.')[0]
+            Image.fromarray(imgs[i]).save(path_dst + prefix + '_flipped.jpg')
+
+    @staticmethod
+    def preview(method, fname):
+        img = Dataset.get_image_file(fname)
+        new_img = method([img])[0]
+        plt.figure()
+        plt.imshow(img)
+        plt.figure()
+        plt.imshow(new_img)
+        plt.show()
+
+
 if __name__ == '__main__':
-    X, y = Dataset.load_data()
-    print(X.shape)
-    print(y.shape)
+    auger = DataAugmentation()
+    # auger.flip_folder('0130', '0131')
+    auger.flip_folder('0131', '0130')
+
+    # auger.preview(auger.flip, '../dataset/0130/person_0000.jpg')
+    # auger.preview(auger.slight_affine, '../dataset/0130/person_0000.jpg')
+
+    # X, y = Dataset.load_data()
+    # print(X.shape)
+    # print(y.shape)
 
     # shapes = np.array([x.shape for x in X])
     # print(np.unique(shapes[:, 0]))
