@@ -1,5 +1,5 @@
 import os
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.utils import to_categorical
@@ -7,14 +7,14 @@ from keras.utils import to_categorical
 import imgaug as ia
 import imgaug.augmenters as iaa
 
-# default resize images to following size
-# IMG_HEIGHT = 89
-# IMG_WIDTH = 81
-IMG_HEIGHT = 64
-IMG_WIDTH = 64
-
 
 class Dataset:
+    # default resize images to following size
+    # IMG_HEIGHT = 89
+    # IMG_WIDTH = 81
+    IMG_HEIGHT = 64
+    IMG_WIDTH = 64
+
     @staticmethod
     def aug_filter(fname, keys=None):
         if keys is not None:
@@ -38,15 +38,16 @@ class Dataset:
     def get_image_file(fname):
         # img = np.array(Image.open(fname))
         img = Image.open(fname)
-        return img #.reshape(img.shape + (1,))
+        return img  # .reshape(img.shape + (1,))
 
     @staticmethod
-    def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None, names=False):
+    def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None, names=False, padding=0):
         """
         get all resized images and their labels in one folder
         :param folder: folder name
         :param num_cat: number of categories, 10 or 40
         :param one_hot: whether to use one hot encoding
+        :param padding: add white padding around the image
         :return: images, labels
         """
         path = '../dataset/' + folder + '/'
@@ -55,7 +56,9 @@ class Dataset:
         imgs = []
         for fname in fnames:
             img = Dataset.get_image_file(path + fname)
-            img = img.resize((IMG_HEIGHT, IMG_WIDTH), Image.ANTIALIAS)
+            img = img.resize((Dataset.IMG_HEIGHT, Dataset.IMG_WIDTH), Image.ANTIALIAS)
+            if padding > 0:
+                img = ImageOps.expand(img, (padding, padding, padding, padding), 255)
             imgs.append(np.array(img))
         if names:
             return imgs, fnames
