@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from Dataset import Dataset
+from Dataset import Dataset, pipeline, ALL_KEYS
 from PIL import Image
+
+from utils import plot_confusion_matrix
 
 Dataset.IMG_HEIGHT = 89
 Dataset.IMG_WIDTH = 81
@@ -52,9 +54,9 @@ def score(group, template, method):
     assert method in ['MSE', 'SQDIFF', 'SQDIFF_NORMED', 'CCORR', 'CCORR_NORMED', 'CCOEFF', 'CCOEFF_NORMED']
 
     # get best scale
-    new_group = np.zeros((group.shape[0],*template.shape),np.uint8)
+    new_group = np.zeros((group.shape[0], *template.shape), np.uint8)
     for i in range(group.shape[0]):
-        new_group[i] = cv2.resize(get_best_scale(group[i]),template.shape)
+        new_group[i] = cv2.resize(get_best_scale(group[i]), template.shape)
 
     # custom implement
     if method == 'MSE':
@@ -87,11 +89,13 @@ def main():
     templates = []
     groups = []
     methods = ['MSE', 'SQDIFF', 'SQDIFF_NORMED', 'CCORR', 'CCORR_NORMED', 'CCOEFF', 'CCOEFF_NORMED']
+    # load original data
+    X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=ALL_KEYS, inclusive=False, padding=40)
+    X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True, padding=40)
+    print(y_train.shape, y_val.shape)
     for i in range(40):
-        g, _ = Dataset.get_image_folder('0' + str(102 + i), 40, padding=40)
-        groups.append(g)
-        temp = get_template(g)
-        templates.append(temp)
+        templ = get_template(X_train[y_train == i])
+        templates.append(templ)
         # plt.imshow(temp,cmap='gray')
         # plt.show()
 
@@ -101,19 +105,22 @@ def main():
         hits40 = []
         hits10 = []
         total = []
-        for i in range(40):
-            m = match(groups[i], templates, method)
-            hits40.append(np.sum(m == i))
-            hits10.append(np.sum(m // 4 == i // 4))
-            total.append(len(m))
-            print(i, np.mean(m == i))
 
-        print('cat40', 1.0 * sum(hits40) / sum(total))
-        print('cat10', 1.0 * sum(hits10) / sum(total))
+        m = match(X_val, templates, method)
+
+        print('cat40', np.mean(m == y_val))
+        print('cat10', np.mean(m // 4 == y_val // 4))
+
+        plot_confusion_matrix(y_val // 4, m // 4, 10)
+        # plt.show()
+        plot_confusion_matrix(y_val, m, 40)
+        # plt.show()
 
 
 if __name__ == '__main__':
     main()
+    # ax=plot_confusion_matrix([1,2,3],[2,2,3],3)
+    # plt.show()
     # g, _ = Dataset.get_image_folder('0' + str(102), 40, padding=40)
     # get_template(g)
     # # plt.imshow(g[0])
