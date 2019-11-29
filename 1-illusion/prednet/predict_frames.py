@@ -64,17 +64,17 @@ def predict(test_model, X_test, nt, mode='fixed', initial=2, batch_size=10):
         for i in range(initial, nt):
             print('Predicting the {}-th frame'.format(i + 1))
             X_hat = test_model.predict(new_test, batch_size)
-            new_test[:, i, :, :, :] = X_hat[:, i, :, :, :]
-        return new_test.transpose((0, 1, 3, 4, 2))
-    if mode == 'feedback2':  # wrong
-        new_test = X_test.transpose((0, 1, 4, 2, 3)).copy()
-        test_model.predict(new_test[:, :1], batch_size)
-        test_model.predict(new_test[:, :1], batch_size)
-        for i in range(initial, nt):
-            print('Predicting the {}-th frame'.format(i + 1))
-            X_hat = test_model.predict(new_test[:, i:i + 1], batch_size)
-            new_test[:, i, :, :, :] = X_hat[:, -1, :, :, :]
-        return new_test.transpose((0, 1, 3, 4, 2))
+            new_test[:, i] = X_hat[:, i]
+        return X_hat.transpose((0, 1, 3, 4, 2))
+    # if mode == 'feedback2':  # wrong
+    #     new_test = X_test.transpose((0, 1, 4, 2, 3)).copy()
+    #     test_model.predict(new_test[:, :1], batch_size)
+    #     test_model.predict(new_test[:, :1], batch_size)
+    #     for i in range(initial, nt):
+    #         print('Predicting the {}-th frame'.format(i + 1))
+    #         X_hat = test_model.predict(new_test[:, i:i + 1], batch_size)
+    #         new_test[:, i, :, :, :] = X_hat[:, -1, :, :, :]
+    #     return new_test.transpose((0, 1, 3, 4, 2))
 
 
 # Compare MSE of PredNet predictions vs. using last frame.  Write results to prediction_scores.txt
@@ -129,12 +129,12 @@ def adjacent_frame_mse(X_hat):
 
 def main():
     # number of frames in the sequence
-    nt = 5
+    nt = 23
     # batch_size = 8
     test_model = init_model(nt)
-    X_test = get_static_test_data('test_data/static', nt)
-    X_hat = predict(test_model, X_test, 5, 'feedback', 3)
-    np.save('results/pred_rotate3', X_hat)
+    X_test = get_static_test_data('test_data/spec', nt)
+    X_hat = predict(test_model, X_test, nt, 'feedback', 21)
+    np.save('results/pred_spec', X_hat)
     print(X_hat.shape)
     print(X_test.shape)
 
@@ -143,8 +143,9 @@ def main():
     # mse_error(X_test, X_hat, name='control')
     # plot_pred(X_test, X_hat, nt, name='control')
 
-    raw_img = get_raw_images('test_data/static')
-    save_images_from_np(X_hat, raw_img, 'rotate3')
+    raw_img = get_raw_images('test_data/spec')
+    save_images_from_np(X_hat, raw_img, 'spec')
+
 
 if __name__ == '__main__':
     main()
