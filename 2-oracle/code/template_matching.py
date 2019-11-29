@@ -111,10 +111,11 @@ def main():
         print('cat40', np.mean(m == y_val))
         print('cat10', np.mean(m // 4 == y_val // 4))
 
+        plt.figure()
         plot_confusion_matrix(y_val // 4, m // 4, 10)
-        # plt.show()
+        plt.figure()
         plot_confusion_matrix(y_val, m, 40)
-        # plt.show()
+        plt.show()
 
 
 if __name__ == '__main__':

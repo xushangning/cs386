@@ -66,11 +66,13 @@ class OracleNetTrainer(object):
                   # verbose set to 0 only when running in console
                   verbose=0)
 
-    def evaluate(self, model, num_cat=10):
+    def evaluate(self, model, num_cat=10, confusion=True):
         assert num_cat in [10, 40], "Number of categories can only be 10 or 40"
-        y_pred = model.predict(self.X_val).argmax(axis=1)
-        plot_confusion_matrix(self.y_val[num_cat].argmax(axis=1), y_pred, num_cat)
-        print(y_pred)
+        print(model.evaluate(self.X_val, self.y_val[num_cat]))
+        if confusion:
+            y_pred = model.predict(self.X_val).argmax(axis=1)
+            plot_confusion_matrix(self.y_val[num_cat].argmax(axis=1), y_pred, num_cat)
+            print(y_pred)
 
 
 def cat10_model_simple():
@@ -150,15 +152,18 @@ def cat10_model_conv():
 if __name__ == '__main__':
     trainer = OracleNetTrainer()
 
-    model = cat10_model_conv()
-    trainer.train(model, num_cat=10, epochs=30)
+    # model = cat10_model_conv()
+    # trainer.train(model, num_cat=10, epochs=30)
 
-    model = cat40_model_conv()
-    trainer.train(model, num_cat=40, epochs=30)
+    # model = cat40_model_conv()
+    # trainer.train(model, num_cat=40, epochs=30)
 
-    # model = load_model('./model/weights_conv_cat10.hdf5')
-    # trainer.evaluate(model, num_cat=10)
+    model = load_model('./model/weights_conv_cat10.hdf5')
+    trainer.evaluate(model, num_cat=10, confusion=False)
     # plt.show()
+
+    model = load_model('./model/weights_conv_cat40.hdf5')
+    trainer.evaluate(model, num_cat=40, confusion=False)
 
     # model = load_model('./model/weights_simple_cat10.hdf5')
     # trainer.evaluate(model, num_cat=10)
