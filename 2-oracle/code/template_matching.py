@@ -3,11 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Dataset import Dataset, pipeline, ALL_KEYS
 from PIL import Image
+import pickle
+import os
 
 from utils import plot_confusion_matrix
 
 Dataset.IMG_HEIGHT = 89
 Dataset.IMG_WIDTH = 81
+
+PADDING = 40
+SCALE_THRESHOLD = 0.99
 
 
 def get_best_scale(img):
@@ -21,7 +26,7 @@ def get_best_scale(img):
     # print(cx,cy)
 
     # find the smallest square that enclose 99% of mass
-    thres = 0.99
+    thres = SCALE_THRESHOLD
     halfsize = 30
     while 1:
         tmp = inv[cx - halfsize:cx + halfsize + 1, cy - halfsize:cy + halfsize + 1]
@@ -85,47 +90,55 @@ def match(dataset, templates, method):
         return scores.argmax(axis=0)
 
 
-def main():
+def train(padding, scale_thres, output_dir):
     templates = []
-    groups = []
-    methods = ['MSE', 'SQDIFF', 'SQDIFF_NORMED', 'CCORR', 'CCORR_NORMED', 'CCOEFF', 'CCOEFF_NORMED']
-    # load original data
-    X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=ALL_KEYS, inclusive=False, padding=40)
-    X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True, padding=40)
-    print(y_train.shape, y_val.shape)
+    PADDING = padding
+    SCALE_THRESHOLD = scale_thres
+    X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=ALL_KEYS, inclusive=False,
+                                         padding=PADDING)
     for i in range(40):
         templ = get_template(X_train[y_train == i])
         templates.append(templ)
         # plt.imshow(temp,cmap='gray')
         # plt.show()
+    if output_dir:
+        model = {'padding': PADDING, 'scale_thres': SCALE_THRESHOLD, 'templates': templates}
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        f = open(os.path.join(output_dir, 'templ.pkl'), 'wb')
+        pickle.dump(model, f, protocol=4)
+        f.close()
+    return model
 
-    for method in ['MSE']:
-        print(method)
 
-        hits40 = []
-        hits10 = []
-        total = []
+def load_model(templ_dir):
+    f = open(os.path.join(templ_dir, 'templ.pkl'), 'rb')
+    param = pickle.load(f)
+    f.close()
+    PADDING = param['padding']
+    SCALE_THRESHOLD = param['scale_thres']
+    return PADDING, SCALE_THRESHOLD, param['templates']
 
-        m = match(X_val, templates, method)
 
-        print('cat40', np.mean(m == y_val))
-        print('cat10', np.mean(m // 4 == y_val // 4))
+def evaluate(templates, method, show_plot=False):
+    X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True, padding=PADDING)
 
-        plt.figure()
+    m = match(X_val, templates, method)
+
+    print('method:', method)
+    print('cat40', np.mean(m == y_val))
+    print('cat10', np.mean(m // 4 == y_val // 4))
+
+    if show_plot:
         plot_confusion_matrix(y_val // 4, m // 4, 10)
-        plt.figure()
+        plt.show()
         plot_confusion_matrix(y_val, m, 40)
         plt.show()
 
 
 if __name__ == '__main__':
-    main()
-    # ax=plot_confusion_matrix([1,2,3],[2,2,3],3)
-    # plt.show()
-    # g, _ = Dataset.get_image_folder('0' + str(102), 40, padding=40)
-    # get_template(g)
-    # # plt.imshow(g[0])
-    # # plt.show()
-    # a = np.array([[1, 2], [3, 4], [5, 6]])
-    # get_best_scale(a,(3,2))
-    # print(a*np.array([[1,2,3]]).T)
+    methods = ['MSE', 'SQDIFF_NORMED', 'CCORR', 'CCORR_NORMED', 'CCOEFF', 'CCOEFF_NORMED']
+    train(40, 0.99, output_dir='./model/')
+    _, _, templates = load_model('./model/')
+    for method in methods:
+        evaluate(templates, method)
