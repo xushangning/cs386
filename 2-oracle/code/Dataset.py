@@ -8,7 +8,7 @@ from utils import *
 import imgaug as ia
 import imgaug.augmenters as iaa
 
-ALL_KEYS = ('val', 'flipped', 'affine')
+ALL_KEYS = ('val', 'flipped', 'affine', 'noise')
 
 
 class Dataset:
@@ -132,12 +132,29 @@ class DataAugmentation(object):
             mode='constant',
             cval=(255, 255)
         )
+        self.noise_aug = iaa.Sequential([
+            iaa.Affine(
+                scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+                translate_px={"x": (-5, 5), "y": (-5, 5)},
+                mode='constant',
+                cval=(255, 255)
+            ),
+            iaa.Sequential([
+                iaa.Sometimes(0.5, iaa.GaussianBlur(sigma=(0, 0.5))),
+                iaa.ContrastNormalization((0.75, 1.5)),
+                iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5),
+                iaa.Multiply((0.8, 1.2), per_channel=0.2),
+            ], random_order=True)
+        ], random_order=False)
 
     def flip(self, imgs):
         return self.flip_aug(images=imgs)
 
     def affine(self, imgs):
         return self.affine_aug(images=imgs)
+
+    def noise(self, imgs):
+        return self.noise_aug(images=imgs)
 
     @staticmethod
     def aug_folder(method, label, folder_src, folder_dst=None):
@@ -221,20 +238,21 @@ def pipeline():
     auger.aug_folder(auger.flip, 'flipped', '0131', '0130')
     # local affine to balance data
     for i in range(102, 142):
-        if i in [114, 115, 116, 117, 127, 128, 119, 121, 130, 131]:
-            continue
-        auger.aug_folder(auger.affine, 'affine', '0{}'.format(i))
+        auger.aug_folder(auger.noise, 'noise', '0{}'.format(i))
+        if i not in [114, 115, 116, 117, 127, 128, 119, 121, 130, 131]:
+            auger.aug_folder(auger.affine, 'affine', '0{}'.format(i))
     # Dataset.clear_all()
 
 
 if __name__ == '__main__':
     # run pipelined augmentation
-    # pipeline()
+    # Dataset.clear_all()
+    pipeline()
 
-    X_train, y_train = Dataset.load_data(one_hot=True, filter_keys=['val'], num_cat=40)
-    X_val, y_val = Dataset.load_data(one_hot=True, filter_keys=['val'], inclusive=True, num_cat=40)
-    print((X_train.shape, y_train.shape, X_val.shape, y_val.shape))
-    print(y_train.sum(axis=0))
+    # X_train, y_train = Dataset.load_data(one_hot=True, filter_keys=['val'], num_cat=40)
+    # X_val, y_val = Dataset.load_data(one_hot=True, filter_keys=['val'], inclusive=True, num_cat=40)
+    # print((X_train.shape, y_train.shape, X_val.shape, y_val.shape))
+    # print(y_train.sum(axis=0))
 
     # DataAugmentation.mark_val_all()
     # DataAugmentation.reset_val_all()
@@ -263,6 +281,7 @@ if __name__ == '__main__':
     # Dataset.clear_all()
 
     # preview augmentation
+    # auger.preview(auger.noise, '../dataset/0130/person_0000.jpg')
     # auger.preview(auger.flip, '../dataset/0130/person_0000.jpg')
     # auger.preview(auger.affine, '../dataset/0130/person_0000.jpg')
 
