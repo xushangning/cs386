@@ -5,8 +5,49 @@
 \hyphenation{op-tical net-works semi-conduc-tor}
 \usepackage{amsmath}
 \usepackage{comment}
-%\usepackage{cases}
-%\usepackage{subeqnarray}
+\usepackage{booktabs}
+\usepackage{subfigure}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{
+  basicstyle=\fontsize{9}{10}\selectfont\ttfamily,
+  numbers=left,
+  numberstyle= \tiny,
+  keywordstyle= \color{ blue!70},
+  commentstyle= \color{red!50!green!50!blue!50},
+  frame=single,
+  rulesepcolor= \color{ red!20!green!20!blue!20} ,
+  escapeinside=``,
+  xleftmargin=1.5em,xrightmargin=0em, aboveskip=1em,
+  framexleftmargin=2em,
+  showstringspaces=false,
+  showtabs=false,
+  breaklines=true
+}
+\lstdefinelanguage{Solidity}
+{
+  morekeywords={contract, mapping, address, uint, private, function, public, if, payable},
+  morecomment=[l]{//},
+  morestring=[b]"
+}
+
+
+\usepackage{multicol}
+\usepackage{lipsum}
+\usepackage{mathtools}
+\usepackage{cuted}
+
+\usepackage{amsmath}
+\usepackage{extpfeil}
+\usepackage{mathpartir}
+\usepackage[mathscr]{eucal}
+
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\crefformat{section}{\S#2#1#3} % see manual of cleveref, section 8.2.1
+\crefformat{subsection}{\S#2#1#3}
+\crefformat{subsubsection}{\S#2#1#3}
 
 \begin{document}
 %
@@ -29,13 +70,13 @@
 %
 
 \author{Michael~Shell,~\IEEEmembership{Member,~IEEE,}
-        John~Doe,~\IEEEmembership{Fellow,~OSA,}
-        and~Jane~Doe,~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
-\thanks{M. Shell is with the Department
-of Electrical and Computer Engineering, Georgia Institute of Technology, Atlanta,
-GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this % stops a space
-\thanks{J. Doe and J. Doe are with Anonymous University.}% <-this % stops a space
-\thanks{Manuscript received April 19, 2005; revised September 17, 2014.}}
+	John~Doe,~\IEEEmembership{Fellow,~OSA,}
+	and~Jane~Doe,~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
+	\thanks{M. Shell is with the Department
+		of Electrical and Computer Engineering, Georgia Institute of Technology, Atlanta,
+		GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this % stops a space
+	\thanks{J. Doe and J. Doe are with Anonymous University.}% <-this % stops a space
+	\thanks{Manuscript received April 19, 2005; revised September 17, 2014.}}
 
 % The paper headers
 \markboth{Journal of \LaTeX\ Class Files,~Vol.~13, No.~9, September~2014}%
@@ -55,12 +96,12 @@ GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this %
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-The abstract goes here.
+	The abstract goes here.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-IEEEtran, journal, \LaTeX, paper, template.
+	IEEEtran, journal, \LaTeX, paper, template.
 \end{IEEEkeywords}
 
 
@@ -73,6 +114,78 @@ IEEEtran, journal, \LaTeX, paper, template.
 
 % wzy
 \section{Data Augmentation}
+The original dataset contains 40 micro categories of oracle bone characters, each with 85 samples.
+Therefore, we have $40 \times 85 = 3400$ samples in total.
+This is barely enough for training a convolutional neural network without overfitting, and we need to apply data augmentation to obtain larger dataset adequate for training.
+
+We first make the following observations.
+
+\paragraph{Observation 1} For each pair of characters in Figure~\ref{fig:sym-across}, we may consider them horizontally symmetric.
+Thus we can double the number of samples by flipping characters in one category horizontally to obtain those in another category.
+
+\begin{figure}[h]
+	\centering
+	\begin{minipage}{0.2\linewidth}
+		\includegraphics[width=0.8\linewidth]{fig/observation-1-1.png}
+		\includegraphics[width=0.8\linewidth]{fig/observation-1-2.png}
+	\end{minipage}
+	% \hfill
+	\begin{minipage}{0.2\linewidth}
+		\includegraphics[width=0.8\linewidth]{fig/observation-1-3.png}
+		\includegraphics[width=0.8\linewidth]{fig/observation-1-4.png}
+	\end{minipage}
+	% \hfill
+	\begin{minipage}{0.2\linewidth}
+		\includegraphics[width=0.8\linewidth]{fig/observation-1-5.png}
+		\includegraphics[width=0.8\linewidth]{fig/observation-1-6.png}
+	\end{minipage}
+	\caption{Symmetric Samples Across Micro-Categories}
+	\label{fig:sym-across}
+\end{figure}
+
+\paragraph{Observation 2} For characters in Figure~\ref{fig:sym-in}, they are horizontally symmetric by themselves.
+We can flip them horizontally to double the number of samples in these categories.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\linewidth]{fig/observation-2.png}
+	\caption{Symmetric Samples in Micro-Categories}
+	\label{fig:sym-in}
+\end{figure}
+
+To balance the samples in different categories after applying above two methods of data augmentation, we need to also double the number of samples in the rest of categories.
+We choose to apply affine transforms to the remaining images.
+More specifically, we randomly scale images up/down by 0 to 10 percent, randomly translate the image horizontally/vertically by 0 to 10 pixels, randomly rotate and shear images by -10 to 10 degrees.
+The augmented images is with the same categories as the original ones.
+
+Then, we need to introduce more noises into the dataset to allow the model trained on it generalize well.
+We apply gaussian blur to original images, randomly strengthen/weaken the contrast in each images, randomly add some gaussian noise to each pixel or one channel of images, and randomly make some images brighter or darker by multiplying channels of images.
+
+Figure~\ref{fig:aug-example} shows an example of the affine augmentation and the noise augmentation.
+\begin{figure}[h]
+	\centering
+	\begin{minipage}{0.2\linewidth}
+		\subfigure[Original]{
+			\includegraphics[width=\linewidth]{fig/person_0001.jpg}
+		}
+	\end{minipage}
+	\begin{minipage}{0.2\linewidth}
+		\subfigure[Affine]{
+			\includegraphics[width=\linewidth]{fig/person_0001_affine.jpg}
+		}
+	\end{minipage}
+	\begin{minipage}{0.2\linewidth}
+		\subfigure[Noise]{
+			\includegraphics[width=\linewidth]{fig/person_0001_noise.jpg}
+		}
+	\end{minipage}
+	\caption{An Example of Affine Augmentation and Noise Augmentation}
+	\label{fig:aug-example}
+\end{figure}
+
+When we actually apply the above augmentation methods to images, we first split the dataset into training set and validation set and only apply augment the samples in the training set to avoid data leakage.
+We select 10 images from each micro categories to form the validation set.
+Eventually, we end up tripling the size of the dataset with 9120 training samples and 400 validation samples.
 
 \section{Character Recognition}
 % wzy
