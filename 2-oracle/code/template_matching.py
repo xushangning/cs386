@@ -56,7 +56,7 @@ def get_template(group, size=(80, 80)):
 
 # mse error
 def score(group, template, method):
-    assert method in ['MSE', 'SQDIFF', 'SQDIFF_NORMED', 'CCORR', 'CCORR_NORMED', 'CCOEFF', 'CCOEFF_NORMED']
+    assert method in ['MSE', 'MSE_NORMED', 'CCORR', 'CCORR_NORMED']
 
     # get best scale
     new_group = np.zeros((group.shape[0], *template.shape), np.uint8)
@@ -65,26 +65,35 @@ def score(group, template, method):
 
     # custom implement
     if method == 'MSE':
-        return np.array([np.mean((new_group[i] - template) ** 2) for i in range(new_group.shape[0])])
-        # return np.mean((group - template) ** 2, axis=(1, 2))
+        return np.mean((new_group - template) ** 2, axis=(1, 2))
+    if method == 'MSE_NORMED':
+        num = np.mean((new_group - template) ** 2, axis=(1, 2))
+        den = np.sqrt(np.sum(new_group ** 2, axis=(1, 2)) * np.sum(template ** 2))
+        return num / den
+    if method == 'CCORR':
+        return np.sum(new_group * template, axis=(1, 2))
+    if method == 'CCORR_NORMED':
+        num = np.sum(new_group * template, axis=(1, 2))
+        den = np.sqrt(np.sum(new_group ** 2, axis=(1, 2)) * np.sum(template ** 2))
+        return num / den
 
     # use cv2.matchTemplate
-    else:
-        # move template around to get the best match
-        res = [cv2.matchTemplate(new_group[i], template.astype(np.uint8), eval('cv2.TM_' + method)) for i in
-               range(new_group.shape[0])]
-        minmax = np.array([cv2.minMaxLoc(res[i]) for i in range(new_group.shape[0])])
-        min_vals = minmax[:, 0]
-        max_vals = minmax[:, 1]
-        if method in ['SQDIFF', 'SQDIFF_NORMED']:
-            return min_vals
-        else:
-            return max_vals
+    # else:
+    # # move template around to get the best match
+    # res = [cv2.matchTemplate(new_group[i], template.astype(np.uint8), eval('cv2.TM_' + method)) for i in
+    #        range(new_group.shape[0])]
+    # minmax = np.array([cv2.minMaxLoc(res[i]) for i in range(new_group.shape[0])])
+    # min_vals = minmax[:, 0]
+    # max_vals = minmax[:, 1]
+    # if method in ['SQDIFF', 'SQDIFF_NORMED']:
+    #     return min_vals
+    # else:
+    #     return max_vals
 
 
 def match(dataset, templates, method):
     scores = np.array([score(dataset, t, method) for t in templates])
-    if method in ['MSE', 'SQDIFF', 'SQDIFF_NORMED']:
+    if method in ['MSE', 'MSE_NORMED']:
         return scores.argmin(axis=0)
     else:
         return scores.argmax(axis=0)
@@ -137,8 +146,8 @@ def evaluate(templates, method, show_plot=False):
 
 
 if __name__ == '__main__':
-    methods = ['MSE', 'SQDIFF_NORMED', 'CCORR', 'CCORR_NORMED', 'CCOEFF', 'CCOEFF_NORMED']
-    train(40, 0.99, output_dir='./model/')
+    methods = ['MSE', 'MSE_NORMED', 'CCORR', 'CCORR_NORMED']
+    # train(40, 0.99, output_dir='./model/')
     _, _, templates = load_model('./model/')
     for method in methods:
         evaluate(templates, method)
