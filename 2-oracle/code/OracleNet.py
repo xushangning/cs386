@@ -16,10 +16,10 @@ from sklearn.model_selection import train_test_split
 from Dataset import Dataset
 from utils import *
 
-
 CLASS_NAMES = ["聨", "蚑", ""]
 
-# training framework for oracle net
+
+# training framework for oracle conv_net
 class OracleNetTrainer(object):
     def __init__(self, test_size=0.1, autosave_path='./tmp/weights.{val_loss:.2f}.hdf5', vis_on_batch=False):
         """
