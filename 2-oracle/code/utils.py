@@ -39,7 +39,7 @@ def plot_confusion_matrix(y_true, y_pred, classes,
            yticks=np.arange(cm.shape[0]),
            # ... and label them with the respective list entries
            xticklabels=np.arange(classes), yticklabels=np.arange(classes),
-           title=title,
+           # title=title,
            ylabel='True label',
            xlabel='Predicted label')
 

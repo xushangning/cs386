@@ -74,6 +74,22 @@ class OracleNetTrainer(object):
             plot_confusion_matrix(self.y_val[num_cat].argmax(axis=1), y_pred, num_cat)
             print(y_pred)
 
+    def error_matrix(self, model_cat10, model_cat40):
+        y_pred_train = [model_cat10(self.X_train).argmax(axis=1),
+                        model_cat40(self.X_train).argmax(axis=1)]
+        y_pred_val = [model_cat10(self.X_val).argmax(axis=1),
+                      model_cat40(self.X_val).argmax(axis=1)]
+        mask_train = [(y_pred_train[0] == self.y_train[10]),
+                      (y_pred_train[1] == self.y_train[40])]
+        print(mask_train[0])
+        mask_val = [(y_pred_val[0] == self.y_val[10]),
+                    (y_pred_val[1] == self.y_val[40])]
+        matrix_train = [sum(mask_train[0] & mask_train[1]), sum(mask_train[0] & (~mask_train[1])),
+                        sum((~mask_train[0]) & mask_train[1]), sum((~mask_train[0]) & (~mask_train[1]))]
+        matrix_val = [sum(mask_val[0] & mask_val[1]), sum(mask_val[0] & (~mask_val[1])),
+                      sum((~mask_val[0]) & mask_val[1]), sum((~mask_val[0]) & (~mask_val[1]))]
+        return mask_train, mask_val
+
 
 def cat10_model_simple():
     # build model structure
@@ -107,16 +123,18 @@ def cat40_model_conv():
     # build model structure
     model = Sequential()
 
-    model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 1)))
-    model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu'))
+    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 1)))
+    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
     model.add(L.MaxPooling2D())
+    model.add(L.BatchNormalization())
 
-    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
-    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
+    model.add(L.Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(L.Conv2D(64, (3, 3), padding='same', activation='relu'))
     model.add(L.MaxPooling2D())
+    model.add(L.BatchNormalization())
 
     model.add(L.Flatten())
-    model.add(L.Dense(128, activation='relu'))
+    model.add(L.Dense(64, activation='relu'))
     model.add(L.Dense(40, activation='softmax'))
 
     # set up optimizer and compile model
@@ -133,10 +151,12 @@ def cat10_model_conv():
     model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 1)))
     model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu'))
     model.add(L.MaxPooling2D())
+    model.add(L.BatchNormalization())
 
     model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
     model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
     model.add(L.MaxPooling2D())
+    model.add(L.BatchNormalization())
 
     model.add(L.Flatten())
     model.add(L.Dense(64, activation='relu'))
@@ -152,18 +172,26 @@ def cat10_model_conv():
 if __name__ == '__main__':
     trainer = OracleNetTrainer()
 
+    # model_cat10 = load_model('./model/weights_norm_cat10.hdf5')
+    # model_cat40 = load_model('./model/weights_norm_cat40.hdf5')
+    # print(trainer.error_matrix(model_cat10.predict, model_cat40.predict))
+
     # model = cat10_model_conv()
     # trainer.train(model, num_cat=10, epochs=30)
 
     # model = cat40_model_conv()
     # trainer.train(model, num_cat=40, epochs=30)
 
-    model = load_model('./model/weights_conv_cat10.hdf5')
-    trainer.evaluate(model, num_cat=10, confusion=False)
-    # plt.show()
+    model = load_model('./model/weights_norm_cat40.hdf5')
+    trainer.evaluate(model, num_cat=40)
+    plt.show()
 
-    model = load_model('./model/weights_conv_cat40.hdf5')
-    trainer.evaluate(model, num_cat=40, confusion=False)
+    model = load_model('./model/weights_norm_cat10.hdf5')
+    trainer.evaluate(model, num_cat=10)
+    plt.show()
+
+    # model = load_model('./model/weights_conv_cat40.hdf5')
+    # trainer.evaluate(model, num_cat=40, confusion=False)
 
     # model = load_model('./model/weights_simple_cat10.hdf5')
     # trainer.evaluate(model, num_cat=10)
