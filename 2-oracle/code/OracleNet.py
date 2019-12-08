@@ -10,6 +10,7 @@ from keras.models import Sequential
 from keras.optimizers import SGD
 from keras.callbacks import *
 from keras.models import load_model
+from keras.models import Model
 
 from sklearn.model_selection import train_test_split
 
@@ -29,14 +30,12 @@ class OracleNetTrainer(object):
         :param vis_on_batch: whether to record visualization on batch
         """
         # load original data
-        X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val', 'test'])
-        X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True)
-        X_train = X_train.reshape(X_train.shape)
-        X_val = X_val.reshape(X_val.shape)
+        self.X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val', 'test'], normalize=True)
+        self.X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True, normalize=True)
+        # X_train = X_train.reshape(X_train.shape)
+        # X_val = X_val.reshape(X_val.shape)
         # X, y = Dataset.load_data(one_hot=False, num_cat=40)
         # normalize image to 0.0 - 1.0
-        self.X_train = X_train / 255
-        self.X_val = X_val / 255
         # covert to different categories
         # y40 = Dataset.to_onehot(y, 40)
         # y = Dataset.cat40_to_cat10(y)
@@ -78,6 +77,7 @@ class OracleNetTrainer(object):
     def run_test(model, num_cat):
         X_test, y_test = Dataset.load_data(num_cat=num_cat, one_hot=True, filter_keys=['test'], inclusive=True,
                                            normalize=True)
+        X_test[X_test < 0.5] = 0
         print(model.evaluate(X_test, y_test))
         y_pred = model.predict(X_test).argmax(axis=1)
         plot_confusion_matrix(y_test.argmax(axis=1), y_pred, num_cat)
@@ -129,21 +129,23 @@ def cat40_model_simple():
 
 def cat40_model_conv():
     # build model structure
-    model = Sequential()
+    model = Sequential(name='cat40')
 
-    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 1)))
-    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
-    model.add(L.MaxPooling2D())
-    model.add(L.BatchNormalization())
+    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 1), name='cat40_1'))
+    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu', name='cat40_2'))
+    model.add(L.MaxPooling2D(name='cat40_3'))
+    model.add(L.BatchNormalization(name='cat40_4'))
 
-    model.add(L.Conv2D(64, (3, 3), padding='same', activation='relu'))
-    model.add(L.Conv2D(64, (3, 3), padding='same', activation='relu'))
-    model.add(L.MaxPooling2D())
-    model.add(L.BatchNormalization())
+    model.add(L.Conv2D(64, (3, 3), padding='same', activation='relu', name='cat40_5'))
+    model.add(L.Conv2D(64, (3, 3), padding='same', activation='relu', name='cat40_6'))
+    model.add(L.MaxPooling2D(name='cat40_7'))
+    model.add(L.BatchNormalization(name='cat40_8'))
 
-    model.add(L.Flatten())
-    model.add(L.Dense(64, activation='relu'))
-    model.add(L.Dense(40, activation='softmax'))
+    model.add(L.Flatten(name='cat40_9'))
+    model.add(L.Dense(64, name='cat40_10'))
+    # model.add(L.BatchNormalization())
+    model.add(L.Activation('relu', name='cat40_11'))
+    model.add(L.Dense(40, activation='softmax', name='cat40_12'))
 
     # set up optimizer and compile model
     sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
@@ -154,21 +156,23 @@ def cat40_model_conv():
 
 def cat10_model_conv():
     # build model structure
-    model = Sequential()
+    model = Sequential(name='cat10')
 
-    model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 1)))
-    model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu'))
-    model.add(L.MaxPooling2D())
-    model.add(L.BatchNormalization())
+    model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 1), name='cat10_1'))
+    model.add(L.Conv2D(16, (3, 3), padding='same', activation='relu', name='cat10_2'))
+    model.add(L.MaxPooling2D(name='cat10_3'))
+    model.add(L.BatchNormalization(name='cat10_4'))
 
-    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
-    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu'))
-    model.add(L.MaxPooling2D())
-    model.add(L.BatchNormalization())
+    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu', name='cat10_5'))
+    model.add(L.Conv2D(32, (3, 3), padding='same', activation='relu', name='cat10_6'))
+    model.add(L.MaxPooling2D(name='cat10_7'))
+    model.add(L.BatchNormalization(name='cat10_8'))
 
-    model.add(L.Flatten())
-    model.add(L.Dense(64, activation='relu'))
-    model.add(L.Dense(10, activation='softmax'))
+    model.add(L.Flatten(name='cat10_9'))
+    model.add(L.Dense(64, name='cat10_10'))
+    # model.add(L.BatchNormalization())
+    model.add(L.Activation('relu', name='cat10_11'))
+    model.add(L.Dense(10, activation='softmax', name='cat10_12'))
 
     # set up optimizer and compile model
     sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
@@ -176,13 +180,33 @@ def cat10_model_conv():
                   metrics=['accuracy'])
     return model
 
+def ensemble(model_cat10, model_cat40, num_cat):
+    imgs = L.Input(shape=(64, 64, 1), name='ensemble_input')
+    cat10 = model_cat10(imgs)
+    cat40 = model_cat40(imgs)
+    ens = L.concatenate([cat10, cat40], name='ensemble_merge')
+    y = L.Dense(num_cat, activation='softmax', name='ensemble_dense')(ens)
+    return Model(inputs=imgs, outputs=y, name='ensemble')
+
 
 if __name__ == '__main__':
     # trainer = OracleNetTrainer()
 
-    # model_cat10 = load_model('./model/weights_norm_cat10.hdf5')
-    # model_cat40 = load_model('./model/weights_norm_cat40.hdf5')
-    # print(trainer.error_matrix(model_cat10.predict, model_cat40.predict))
+    # model_cat10 = load_model('./model/weights_norm_cat10_v2.hdf5')
+    # model_cat40 = load_model('./model/weights_norm_cat40_v2.hdf5')
+    # model_cat10.name = 'cat10'
+    # model_cat40.name = 'cat40'
+    # model_cat10.trainable = False
+    # model_cat40.trainable = False
+    # # ensemble_cat10 = ensemble(model_cat10, model_cat40, 10)
+    # ensemble_cat40 = ensemble(model_cat10, model_cat40, 40)
+    # sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
+    # # ensemble_cat10.compile(loss='categorical_crossentropy', optimizer=sgd,
+    # #                        metrics=['accuracy'])
+    # ensemble_cat40.compile(loss='categorical_crossentropy', optimizer=sgd,
+    #                        metrics=['accuracy'])
+    # trainer.train(ensemble_cat40, num_cat=40, batch_size=32, epochs=30)
+    # # print(trainer.error_matrix(model_cat10.predict, model_cat40.predict))
 
     # model = cat10_model_conv()
     # trainer.train(model, num_cat=10, epochs=30)
@@ -190,12 +214,13 @@ if __name__ == '__main__':
     # model = cat40_model_conv()
     # trainer.train(model, num_cat=40, epochs=30)
 
-    model = load_model('./model/weights_norm_cat40.hdf5')
+    # model = load_model('./model/weights_ensemble_cat40.hdf5')
     # trainer.evaluate(model, num_cat=40)
-    OracleNetTrainer.run_test(model, 40)
-    plt.show()
+    # OracleNetTrainer.run_test(model, 40)
+    # plt.show()
 
-    model = load_model('./model/weights_norm_cat10.hdf5')
+    # model = load_model('./model/weights_ensemble_cat10.hdf5')
+    # model = load_model('./model/weights_norm_cat10.hdf5')
     # trainer.evaluate(model, num_cat=10)
     OracleNetTrainer.run_test(model, 10)
     plt.show()
