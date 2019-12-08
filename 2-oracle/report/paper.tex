@@ -198,7 +198,7 @@ We first learn a deep convolutional neural network to recognize characters, then
 The deep neural network for learning the oracle bone characters has the structure in Figure~\ref{fig:network}.
 
 \begin{figure}[h]
-	\centering
+	\centering   
 	\includegraphics[width=\linewidth]{fig/network.png}
 	\caption{Structure of the DNN}
 	\label{fig:network}
@@ -207,6 +207,7 @@ The deep neural network for learning the oracle bone characters has the structur
 The network first uses 2 convolutional layer with 16 filters, then apply max-pooling and batch normalization, then another 2 convolutional layer with 32 filters and pooling layer with normalization. Lastly, it uses one dense layer and an output layer. All trainable layers except the output layer uses ReLU activation and the output layer uses softmax activation.
 
 We use a simple stochastic gradient descent optimizer to train the network on the 9120 training samples and validate it on the remaining 400 samples.
+The data has been normalized into the range from 0 to 1.
 
 The network for 10 category classification achieves 98\% accuracy on the validation set at the save point, and the one for 40 category classification achieves 88.5\% accuracy on the validation set at the save point.
 Figure~\ref{fig:network-confusion} shows the confusion matrix for the validation results.
@@ -262,8 +263,50 @@ To compare this method with the above convolutional neural network, we do the sa
 \subsection{Ensemble of Two Methods}
 
 \section{Experiments}
+Then we test the accuracy of our models under more realistic circumstances.
+
 \subsection{Test Set}
-\subsection{Results}
+We test models on our homebrew dataset where we write oracle bone characters using different pens, on different papers, and captured under different lighting condition.
+Figure~\ref{fig:testset} shows samples in the test set.
+We can see that the background color and character color varies dramatically from those of the original dataset.
+Moreover, there are other noises such as the texture of the paper that could disturb our models.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.19\linewidth]{fig/testset/test_bxy_2_30.jpg}
+	\includegraphics[width=0.19\linewidth]{fig/testset/test_lcx_1_40.jpg}
+	\includegraphics[width=0.19\linewidth]{fig/testset/test_ljy_2_28.jpg}
+	\includegraphics[width=0.19\linewidth]{fig/testset/test_wzy_1_30.jpg}
+	\includegraphics[width=0.19\linewidth]{fig/testset/test_xsn_2_28.jpg}
+	\caption{Samples in Test Set}
+	\label{fig:testset}
+\end{figure}
+
+There are 400 samples in the test set, 10 samples for each micro category.
+We only write 200 samples and double the size by capturing them under different lighting.
+
+\subsection{Evaluation and Improvements}
+To recognize characters in the test set, we need to first preprocess the samples.
+
+We first obtain the grey scale version of the images.
+For the test on the neural network, we normalize images as before and set pixels with values less than some threshold $\delta$ to 0.
+For the test on the template matching, we do not normalize images but set pixels with values less than some threshold $\Delta$ to 0.
+In this way, we can remove the influence of the background color on the recognition result.
+
+\begin{table}[h]
+	\centering
+	\caption{Accuracy for Different Models}
+	\label{tab:result}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		& Cat10 & Cat40 \\\hline
+		DNN ($\delta=0.5$) & 0.8475 & 0.5275 \\\hline
+		DNN Ensemble ($\delta=0.5$) & 0.8000 & 0.56 \\\hline
+		TM ($\Delta=?$) & ? & ? \\\hline
+		TM Ensemble ($\Delta=?$) & ? & ? \\\hline
+	\end{tabular}
+\end{table}
+
+Table~\ref{tab:result} shows the accuracy of different models wrt. the test set.
 
 \section{Conclusion}
 The conclusion goes here.

@@ -214,16 +214,19 @@ if __name__ == '__main__':
     # model = cat40_model_conv()
     # trainer.train(model, num_cat=40, epochs=30)
 
-    # model = load_model('./model/weights_ensemble_cat40.hdf5')
-    # trainer.evaluate(model, num_cat=40)
-    # OracleNetTrainer.run_test(model, 40)
+    model = load_model('./model/weights_ensemble_cat40.hdf5')
+    OracleNetTrainer.run_test(model, 40)
     # plt.show()
 
-    # model = load_model('./model/weights_ensemble_cat10.hdf5')
-    # model = load_model('./model/weights_norm_cat10.hdf5')
-    # trainer.evaluate(model, num_cat=10)
+    model = load_model('./model/weights_ensemble_cat10.hdf5')
     OracleNetTrainer.run_test(model, 10)
-    plt.show()
+
+    model = load_model('./model/weights_norm_cat40.hdf5')
+    OracleNetTrainer.run_test(model, 40)
+
+    model = load_model('./model/weights_norm_cat10.hdf5')
+    OracleNetTrainer.run_test(model, 10)
+    # plt.show()
 
     # model = load_model('./model/weights_conv_cat40.hdf5')
     # trainer.evaluate(model, num_cat=40, confusion=False)
