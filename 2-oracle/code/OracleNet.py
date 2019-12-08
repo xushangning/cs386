@@ -29,10 +29,10 @@ class OracleNetTrainer(object):
         :param vis_on_batch: whether to record visualization on batch
         """
         # load original data
-        X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'])
+        X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val', 'test'])
         X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True)
-        X_train = X_train.reshape(X_train.shape + (1,))
-        X_val = X_val.reshape(X_val.shape + (1,))
+        X_train = X_train.reshape(X_train.shape)
+        X_val = X_val.reshape(X_val.shape)
         # X, y = Dataset.load_data(one_hot=False, num_cat=40)
         # normalize image to 0.0 - 1.0
         self.X_train = X_train / 255
@@ -73,6 +73,14 @@ class OracleNetTrainer(object):
             y_pred = model.predict(self.X_val).argmax(axis=1)
             plot_confusion_matrix(self.y_val[num_cat].argmax(axis=1), y_pred, num_cat)
             print(y_pred)
+
+    @staticmethod
+    def run_test(model, num_cat):
+        X_test, y_test = Dataset.load_data(num_cat=num_cat, one_hot=True, filter_keys=['test'], inclusive=True,
+                                           normalize=True)
+        print(model.evaluate(X_test, y_test))
+        y_pred = model.predict(X_test).argmax(axis=1)
+        plot_confusion_matrix(y_test.argmax(axis=1), y_pred, num_cat)
 
     def error_matrix(self, model_cat10, model_cat40):
         y_pred_train = [model_cat10(self.X_train).argmax(axis=1),
@@ -170,7 +178,7 @@ def cat10_model_conv():
 
 
 if __name__ == '__main__':
-    trainer = OracleNetTrainer()
+    # trainer = OracleNetTrainer()
 
     # model_cat10 = load_model('./model/weights_norm_cat10.hdf5')
     # model_cat40 = load_model('./model/weights_norm_cat40.hdf5')
@@ -183,11 +191,13 @@ if __name__ == '__main__':
     # trainer.train(model, num_cat=40, epochs=30)
 
     model = load_model('./model/weights_norm_cat40.hdf5')
-    trainer.evaluate(model, num_cat=40)
+    # trainer.evaluate(model, num_cat=40)
+    OracleNetTrainer.run_test(model, 40)
     plt.show()
 
     model = load_model('./model/weights_norm_cat10.hdf5')
-    trainer.evaluate(model, num_cat=10)
+    # trainer.evaluate(model, num_cat=10)
+    OracleNetTrainer.run_test(model, 10)
     plt.show()
 
     # model = load_model('./model/weights_conv_cat40.hdf5')

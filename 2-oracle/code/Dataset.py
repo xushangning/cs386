@@ -8,7 +8,7 @@ from utils import *
 import imgaug as ia
 import imgaug.augmenters as iaa
 
-ALL_KEYS = ('val', 'flipped', 'affine', 'noise')
+ALL_KEYS = ('val', 'flipped', 'affine', 'noise', 'test')
 
 
 class Dataset:
@@ -40,11 +40,11 @@ class Dataset:
     @staticmethod
     def get_image_file(fname):
         # img = np.array(Image.open(fname))
-        img = Image.open(fname)
+        img = Image.open(fname).convert('L')
         return img  # .reshape(img.shape + (1,))
 
     @staticmethod
-    def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None, inclusive=False, names=False, padding=0):
+    def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None, inclusive=False, names=False, padding=0, normalize=False):
         """
         get all resized images and their labels in one folder
         :param folder: folder name
@@ -60,12 +60,17 @@ class Dataset:
         for fname in fnames:
             img = Dataset.get_image_file(path + fname)
             img = img.resize((Dataset.IMG_HEIGHT, Dataset.IMG_WIDTH), Image.ANTIALIAS)
+            if normalize:
+                img = np.array(img)
+                img = (img - img.min()) / (img.max() - img.min())
             if padding > 0:
                 img = ImageOps.expand(img, (padding, padding, padding, padding), 255)
             imgs.append(np.array(img))
         if names:
             return imgs, fnames
         imgs = np.array(imgs)
+        if len(imgs.shape) < 4:
+            imgs = imgs.reshape(imgs.shape + (1,))
         cats = np.repeat(cat, imgs.shape[0])
         if one_hot:
             cats = to_categorical(cats, num_cat)
@@ -76,7 +81,7 @@ class Dataset:
         return to_categorical(cats, num_cat)
 
     @staticmethod
-    def load_data(num_cat=10, one_hot=False, filter_keys=None, inclusive=False, padding=0):
+    def load_data(num_cat=10, one_hot=False, filter_keys=None, inclusive=False, padding=0, normalize=False):
         """
         load all images in dataset folder
         :param num_cat: number of categories
@@ -89,7 +94,7 @@ class Dataset:
         y = []
         for dir in dirs:
             _X, _y = Dataset.get_image_folder(folder=dir, num_cat=num_cat, filter_keys=filter_keys, inclusive=inclusive,
-                                              padding=padding)
+                                              padding=padding, normalize=normalize)
             if X is None:
                 X = _X
             else:
@@ -116,7 +121,7 @@ class Dataset:
     @staticmethod
     def clear_all(path='../dataset/', filter_keys=None):
         if filter_keys is None:
-            filter_keys = set(ALL_KEYS) - {'val'}
+            filter_keys = set(ALL_KEYS) - {'val', 'test'}
         for folder in os.listdir(path):
             Dataset.clear_folder(folder, path, filter_keys=filter_keys)
 
