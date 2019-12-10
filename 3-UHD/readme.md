@@ -5,7 +5,7 @@ Please organize the project folder for 3-UHD like this:
 |----code
 |    |
 |    |----images
-|    |      |----4k
+|    |      |----4k (original "homework" download)
 |    |      |----720P
 |    |      |----1080P
 |    |
