@@ -116,7 +116,7 @@ class TemplateMatch:
         self.scale_threshold = scale_thres
         self.templates = []
 
-        X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=ALL_KEYS, inclusive=False)
+        X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['test'], normalize=False)
 
         for i in range(40):
             templ = self.get_template(X_train[y_train == i])
@@ -164,8 +164,8 @@ class TemplateMatch:
         :param X: nparray m*h*w
         :return: softmax score of each category
         '''
-        if X.ndim == 4:
-            X = X[:, :, :, 0]
+        # if X.ndim == 4:
+        #     X = X[:, :, :, 0]
         scores = np.array([self.score(X, t) for t in self.templates])
         return softmax(scores.T, axis=1)
 
@@ -177,5 +177,5 @@ if __name__ == '__main__':
     # tm.train(40, 0.99, output_dir='./model/')
     tm.load_model('./model/templ.pkl')
 
-    for method in ['CCORR_NORMED']:
+    for method in ['MSE_NORMED', 'CCORR_NORMED']:
         tm.evaluate(method)
