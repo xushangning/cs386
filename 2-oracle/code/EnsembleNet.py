@@ -23,15 +23,17 @@ class EnsembleNet:
 
         self.cat = cat
 
-        if cat == 10:
-            # self.conv_net = cat10_model_conv()
-            self.conv_net = load_model('./model/weights_conv_cat10.hdf5')
-        else:
+        # if cat == 10:
+        #     # self.conv_net = cat10_model_conv()
+        #     self.conv_net = load_model('./model/weights_norm_cat10.hdf5')
+        # else:
             # self.conv_net = cat40_model_conv()
-            self.conv_net = load_model('./model/weights_conv_cat40.hdf5')
+        self.conv_net = load_model('./model/weights_norm_cat40.hdf5')
 
         self.tm = TemplateMatch(method='CCORR_NORMED')
         self.tm.load_model('./model/templ.pkl')
+        # self.tm2 = TemplateMatch(method='MSE_NORMED')
+        # self.tm2.load_model('./model/templ.pkl')
 
         if filepath:
             self.ens = load_model(filepath)
@@ -41,7 +43,7 @@ class EnsembleNet:
     def create_ensemble(self):
         print('creating ensemble')
         model = Sequential()
-        model.add(L.Dense(self.cat, activation='softmax', input_shape=(2 * self.cat,)))
+        model.add(L.Dense(self.cat, activation='softmax', input_shape=(80,)))
 
         # set up optimizer and compile model
         sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
@@ -70,10 +72,12 @@ class EnsembleNetTrainer(object):
         :param vis_on_batch: whether to record visualization on batch
         """
         # load original data
-        X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'])
-        X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True)
-        X_train = X_train.reshape(X_train.shape + (1,))
-        X_val = X_val.reshape(X_val.shape + (1,))
+        X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['test'])
+        X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['test'], inclusive=True,
+                                         normalize=True)
+        X_val *= 255
+        # X_train = X_train.reshape(X_train.shape + (1,))
+        # X_val = X_val.reshape(X_val.shape + (1,))
 
         self.X_train = X_train
         self.X_val = X_val
@@ -120,8 +124,8 @@ class EnsembleNetTrainer(object):
 if __name__ == '__main__':
     trainer = EnsembleNetTrainer()
 
-    # ens_model = EnsembleNet(40)
-    # trainer.train(ens_model, epochs=1000)
+    ens_model = EnsembleNet(40)
+    trainer.train(ens_model, epochs=1000)
 
-    ens_model = EnsembleNet(40, './model/weights_ens_cat40.hdf5')
-    trainer.evaluate(ens_model)
+    # ens_model = EnsembleNet(40, './model/weights_ens_cat40.hdf5')
+    # trainer.evaluate(ens_model)
