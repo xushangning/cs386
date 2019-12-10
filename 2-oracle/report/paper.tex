@@ -267,7 +267,7 @@ To compare this method with the above convolutional neural network, we do the sa
 
 % ljy
 \subsection{Ensemble of Two Methods}
-To improve the performance of the model, we add an ensemble network for CNN and template matching. It takes the output of CNN and template matching as input, and through a linear regression, produces the score of each class. 
+To improve the performance of the model, we add an ensemble network for CNN. (UNFINISHED)
 
 \section{Experiments}
 Then we test the accuracy of our models under more realistic circumstances.
@@ -308,8 +308,8 @@ In this way, we can remove the influence of the background color on the recognit
 		                            & Cat10  & Cat40  \\\hline
 		DNN ($\delta=0.5$)          & 0.8475 & 0.5275 \\\hline
 		DNN Ensemble ($\delta=0.5$) & 0.8000 & 0.56   \\\hline
-		TM ($\Delta=150$, NMSE)     & 0.7775 & 0.6325 \\\hline
-		TM ($\Delta=150$, NCCOR)    & 0.8000 & 0.6500 \\\hline
+		TM ($\Delta=150$, NMSE)     & 0.7575 & 0.6125 \\\hline
+		TM ($\Delta=150$, NCCOR)    & 0.8475 & 0.7000 \\\hline
 		TM Ensemble ($\Delta=?$)    & ?      & ?      \\\hline
 	\end{tabular}
 \end{table}
