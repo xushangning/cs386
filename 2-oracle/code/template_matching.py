@@ -22,8 +22,13 @@ class TemplateMatch:
         self.scale_threshold = scale_threshold
         self.templates = []
         self.method = method
+        self.white_thres = 150
 
     def get_best_scale(self, img):
+        # set near white color to white
+        img[img > self.white_thres] = 255
+        # plt.hist(img.ravel())
+        # plt.show()
         # add padding
         img = cv2.copyMakeBorder(img, self.padding, self.padding, self.padding, self.padding,
                                  cv2.BORDER_CONSTANT, None, 255)
@@ -39,7 +44,7 @@ class TemplateMatch:
 
         # find the smallest square that enclose 99% of mass
         thres = self.scale_threshold
-        halfsize = 30
+        halfsize = 10
         while 1:
             tmp = inv[cx - halfsize:cx + halfsize + 1, cy - halfsize:cy + halfsize + 1]
             if np.sum(tmp) > thres * suminv:
@@ -138,9 +143,11 @@ class TemplateMatch:
         if method:
             self.method = method
 
-        X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True)
+        X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['test'], inclusive=True,
+                                         normalize=True)
+        X_val *= 255
 
-        m = self.match(X_val)
+        m = self.match(X_val.copy())
 
         print('method:', self.method)
         print('cat40', np.mean(m == y_val))
@@ -170,5 +177,5 @@ if __name__ == '__main__':
     # tm.train(40, 0.99, output_dir='./model/')
     tm.load_model('./model/templ.pkl')
 
-    for method in methods:
+    for method in ['CCORR_NORMED']:
         tm.evaluate(method)
