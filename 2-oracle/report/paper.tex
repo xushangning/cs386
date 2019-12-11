@@ -117,7 +117,9 @@
 In this paper, we propose different methods to detect hand-written oracle bone script, which facilitates interactive applications. We try both the traditional template matching and the convolutional neural network. We also make an ensemble of the two methods to get a better performance.
 
 \section{Related Work}
-Though not been widely researched, Lin \cite{ssd} uses Single Shot Multibox Detector (SSD) to detect oracle bone inscription and receives considerable results.
+For years researchers have tried traditional image processing methods on oracle bone script, like template matching \cite{tm}. Meng et al. \cite{tm1} improves this method by devising a two-stage method. They extract line points using Hough transform and generate templates in that space. 
+
+Currently, Deep learning is widely used in the field of object detection and classification with exciting accuracy. Meng et al. \cite{conv} use AlexNet on their own generated dataset of oracle bone inscription and achieved considerable results. Since in that research, they need to first segment each character before doing the classification, they later proposed a method \cite{ssd} to use Single Shot Multibox Detector (SSD) on oracle bone inscription.
 
 
 % wzy
