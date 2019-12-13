@@ -245,6 +245,11 @@ We can see the mistakes made between macro categories is very low and we can use
 Most mistakes are made within the macro category.
 For example, it miss-classifies many samples for variants of the 3rd and 8th macro categories.
 
+It is possible to improve the performance of DNN method by building an ensemble of the Cat10 network model and Cat40 network model so that we can cancel some errors in one network with the support of another.
+We use the outputs from two networks as the inputs to another dense layer to further classify samples based on the first stage results.
+We train the extra dense layer still using the train samples.
+However, the performance of the ensemble models does not improve wrt. the original DNN.
+
 % ljy
 \subsection{Template Matching}
 For the oracle bone character recognition task, we also try a traditional method, template matching, to solve it.
@@ -266,10 +271,6 @@ To measure the similarity of a sample and a template, we think of two metrics, n
 \end{align*}
 
 To compare this method with the above convolutional neural network, we do the same train-validation split.
-
-% ljy
-\subsection{Ensemble of Two Methods}
-To improve the performance of the model, we add an ensemble network for CNN. (UNFINISHED)
 
 \section{Experiments}
 Then we test the accuracy of our models under more realistic circumstances.
@@ -308,15 +309,15 @@ In this way, we can remove the influence of the background color on the recognit
 	\begin{tabular}{|c|c|c|}
 		\hline
 		                            & Cat10  & Cat40  \\\hline
-		DNN ($\delta=0.5$)          & 0.8475 & 0.5275 \\\hline
+		DNN ($\delta=0.5$)          & \textbf{0.8475} & 0.5275 \\\hline
 		DNN Ensemble ($\delta=0.5$) & 0.8000 & 0.56   \\\hline
 		TM ($\Delta=150$, NMSE)     & 0.7575 & 0.6125 \\\hline
-		TM ($\Delta=150$, NCCOR)    & 0.8475 & 0.7000 \\\hline
-		TM Ensemble ($\Delta=?$)    & ?      & ?      \\\hline
+		TM ($\Delta=150$, NCCOR)    & \textbf{0.8475} & \textbf{0.7000} \\\hline
 	\end{tabular}
 \end{table}
 
 Table~\ref{tab:result} shows the accuracy of different models wrt. the test set.
+It turns out that the DNN is no better than template matching in the case of micro category classification due to its sensitiveness to noises.
 
 \section{Conclusion}
 The conclusion goes here.
