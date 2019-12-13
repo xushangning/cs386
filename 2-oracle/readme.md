@@ -1,4 +1,5 @@
-You should structure the project folder for 2-oracle like this:
+# 2-Oracle
+Please organize the project folder for 2-oracle like this:
 ```
 2-oracle
 |
