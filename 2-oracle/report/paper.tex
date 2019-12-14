@@ -112,14 +112,14 @@
 
 
 \section{Introduction}
-\IEEEPARstart{O}{racle} bone script is the earliest known Chinese writing, which dates back to the late 2nd millennium BC. Detection and recognition of oracle bone script is crucial for the understanding of the social and political characteristics of ancient Chinese. It is also significant in education and arts nowadays, as the script is a cultural heritage of both China and the human civilization.
+\IEEEPARstart{O}{racle} bone inscription (OBI) is the earliest known Chinese writing, which dates back to the late 2nd millennium BC. Detection and recognition of oracle bone inscription is crucial for the understanding of the social and political characteristics of ancient Chinese. It is also significant in education and arts nowadays, as OBI is a cultural heritage of both China and the human civilization.
 
 In this paper, we propose different methods to detect hand-written oracle bone script, which facilitates interactive applications. We try both the traditional template matching and the convolutional neural network. We also make an ensemble of the two methods to get a better performance.
 
 \section{Related Work}
-For years researchers have tried traditional image processing methods on oracle bone script, like template matching \cite{tm}. Meng et al. \cite{tm1} improves this method by devising a two-stage method. They extract line points using Hough transform and generate templates in that space. 
+For years researchers have tried traditional image processing methods on oracle bone inscription, like template matching \cite{tm}. Meng et al. \cite{tm1} improves this method by devising a two-stage method. They extract line points using Hough transform and generate templates in that space. 
 
-Currently, Deep learning is widely used in the field of object detection and classification with exciting accuracy. Meng et al. \cite{conv} use AlexNet on their own generated dataset of oracle bone inscription and achieved considerable results. Since in that research, they need to first segment each character before doing the classification, they later proposed a method \cite{ssd} to use Single Shot Multibox Detector (SSD) on oracle bone inscription.
+Currently, Deep learning is widely used in the field of object detection and classification with exciting accuracy. Meng et al. \cite{conv} use AlexNet on their own generated dataset of OBI and achieved considerable results. Since in that research, they need to first segment each character before doing the classification, they later proposed a method \cite{ssd} to use Single Shot Multibox Detector (SSD) on OBI.
 
 
 % wzy
@@ -320,7 +320,7 @@ Table~\ref{tab:result} shows the accuracy of different models wrt. the test set.
 It turns out that the DNN is no better than template matching in the case of micro category classification due to its sensitiveness to noises.
 
 \section{Conclusion}
-The conclusion goes here.
+This paper focuses on detection of hand-written oracle bone script. We first manually generate a small dataset and use data augmentation, like affine transform and noise augmentation, to get more data. Then we try light-weight models like template matching and low-depth convolutional neural network. We improve the two methods with scale transformation and ensemble network respectively. The experiment shows that the two methods achieve similar performance, probably because the lack of data impairs CNN's generalization ability.
 
 \bibliographystyle{IEEEtran}
 \bibliography{Ref}
