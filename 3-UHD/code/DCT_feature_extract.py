@@ -3,13 +3,6 @@ import os
 from DCT_Judger import *
 
 
-def bool_string(input_string):
-    if input_string not in {"True", "False"}:
-        raise ValueError("Please Enter a valid Ture/False choice")
-    else:
-        return (input_string == "True")
-
-
 def parse_args():
     """ Parse command line arguments.
     """
@@ -30,9 +23,9 @@ def parse_args():
     parser.add_argument(
         "--threshold", help="Threshold on the relative DCT value. "
                             "Effective only when div_dct is True.",
-        default=0, type=int)
+        default=20, type=int)
     parser.add_argument(
-        "--div_ref_before", help="Divide reference before statistics.",
+        "--div_ref", help="Divide reference before statistics.",
         default=True, type=bool_string)
     return parser.parse_args()
 
@@ -40,8 +33,8 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     feats = extract_feature_folder(args.folder, args.tile, args.channel, args.samples,
-                                   args.ref_rate, args.threshold, args.div_ref_before)
+                                   args.ref_rate, args.threshold, args.div_ref)
     np.savetxt(os.path.join(args.folder, "tile_{}_channel_{}_samples_{}_rate_{}_threshold_{}_div_{}.txt"
                .format(args.tile, args.channel, args.samples,
                        args.ref_rate, args.threshold,
-                       args.div_ref_before)), feats)
+                       args.div_ref)), feats)

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from utils import *
 import sys
 import os
+import argparse
 
 
 def dct_tile(img, i, j, tile, channel=0, rate=2, divide_ref=True):
@@ -58,8 +59,8 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
             std = sqr_dev(dct)
         else:
             dct, ref = dct_tile(img[:, :], i, j, tile, rate=ref_rate, divide_ref=div_dct)
-            abd = abs_dev(dct) / abs_dev(ref)
-            std = sqr_dev(dct) / sqr_dev(ref)
+            abd = abs_dev(dct)  # / abs_dev(ref)
+            std = sqr_dev(dct)  # / sqr_dev(ref)
         dcts.append(dct)
         abds.append(abd)
         stds.append(std)
@@ -68,15 +69,20 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
            np.array(dcts), np.array(abds), np.array(stds)
 
 
-def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True):
+def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, return_fnames=False, size=None):
     fnames = [e for e in os.listdir(folder) if e.split('.')[-1] in ('bmp', 'jpg', 'png')]
     print("Processing {}".format(folder))
     feats = []
     for i, fname in enumerate(fnames):
-        print('{} / {}'.format(i, len(fnames)))
+        if size is not None and i >= size:
+            break
+        print('{} / {}'.format(i, min(len(fnames), size)))
         img = get_image(os.path.join(folder, fname))
         feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct)
         feats.append(feat)
+
+    if return_fnames:
+        return np.array(feats), fnames
     return np.array(feats)
 
 
@@ -84,6 +90,61 @@ def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, thres
     img = get_image(fname)
     feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct)
     print(np.array(feat))
+
+
+def classify_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True,
+                    thresholds_cut=(2.012829899787903, 3.586151076126429), method='rate2', size=None):
+    assert method in ['rate2', 'rate4', 'both'], "Parameter 'method' should be one of 'rate2', 'rate4', 'both'."
+    feats, fnames = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold, div_dct, return_fnames=True, size=size)
+    mask_rate2 = (feats[:, 0] > thresholds_cut[0])
+    mask_rate4 = (feats[:, 3] > thresholds_cut[1])
+    if method is 'rate2':
+        return mask_rate2
+    elif method is 'rate4':
+        return mask_rate4
+    elif method is 'both':
+        return mask_rate4 & mask_rate2
+
+
+def bool_string(input_string):
+    if input_string not in {"True", "False"}:
+        raise ValueError("Please Enter a valid Ture/False choice")
+    else:
+        return (input_string == "True")
+
+
+def parse_args():
+    """ Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(description="DCT Judger")
+    parser.add_argument("--input_folder", help="Input image folder.", type=str)
+    parser.add_argument(
+        "--output_filename", help="The output txt file of classification results.",
+        default="output.txt", type=str
+    )
+    parser.add_argument(
+        "--tile", help="Size of tile.",
+        default=32, type=int)
+    parser.add_argument(
+        "--channel", help="Channel of image.",
+        default=0, type=int)
+    parser.add_argument(
+        "--samples", help="Number of random tile samples.",
+        default=50, type=int)
+    parser.add_argument(
+        "--ref_rate", help="Reference down sampling rate.",
+        default=2, type=int)
+    parser.add_argument(
+        "--threshold", help="Threshold on the relative DCT value. "
+                            "Effective only when div_dct is True.",
+        default=20, type=int)
+    parser.add_argument(
+        "--div_ref", help="Divide reference before statistics.",
+        default=True, type=bool_string)
+    parser.add_argument(
+        "--max_image", help="Divide reference before statistics.",
+        default=None, type=int)
+    return parser.parse_args()
 
 
 # def tile_dct(img, i, j, tile, channel=0):
@@ -108,8 +169,13 @@ def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, thres
 #     hst = plt.hist(dcts)[0]
 
 if __name__ == '__main__':
-    extract_feature_single('images/1080P/bicubic/32.bmp', tile=32, channel=0, samples=50,
-                           ref_rate=2, threshold=20, div_dct=True)
+    args = parse_args()
+    res = classify_folder(args.input_folder, args.tile, args.channel, args.samples,
+                          args.ref_rate, args.threshold, args.div_ref, size=args.max_image)
+    np.savetxt(args.output_filename, res)
+
+    # extract_feature_single('images/1080P/bicubic/32.bmp', tile=32, channel=0, samples=50,
+    #                        ref_rate=2, threshold=20, div_dct=True)
 
     # if len(sys.argv) < 2:
     #     print("Please specify the image folder.")
