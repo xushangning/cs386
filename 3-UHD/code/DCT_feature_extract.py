@@ -13,7 +13,7 @@ def bool_string(input_string):
 def parse_args():
     """ Parse command line arguments.
     """
-    parser = argparse.ArgumentParser(description="Deep SORT")
+    parser = argparse.ArgumentParser(description="DCT Feature")
     parser.add_argument("folder", help="Image folder.", type=str)
     parser.add_argument(
         "--tile", help="Size of tile.",
@@ -44,4 +44,4 @@ if __name__ == '__main__':
     np.savetxt(os.path.join(args.folder, "tile_{}_channel_{}_samples_{}_rate_{}_threshold_{}_div_{}.txt"
                .format(args.tile, args.channel, args.samples,
                        args.ref_rate, args.threshold,
-                       args.div_ref_before), feats))
+                       args.div_ref_before)), feats)
