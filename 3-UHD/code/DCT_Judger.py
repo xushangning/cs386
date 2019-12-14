@@ -63,8 +63,8 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
         dcts.append(dct)
         abds.append(abd)
         stds.append(std)
-    return np.array([np.mean(abds), np.min(abds), np.max(abds),
-                     np.mean(stds), np.min(stds), np.max(stds)]), \
+    return np.array([np.nanmean(abds), np.nanmin(abds), np.nanmax(abds),
+                     np.nanmean(stds), np.nanmin(stds), np.nanmax(stds)]), \
            np.array(dcts), np.array(abds), np.array(stds)
 
 
@@ -78,6 +78,12 @@ def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, thre
         feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct)
         feats.append(feat)
     return np.array(feats)
+
+
+def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True):
+    img = get_image(fname)
+    feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct)
+    print(np.array(feat))
 
 
 # def tile_dct(img, i, j, tile, channel=0):
@@ -102,6 +108,9 @@ def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, thre
 #     hst = plt.hist(dcts)[0]
 
 if __name__ == '__main__':
+    extract_feature_single('images/1080P/bicubic/32.bmp', tile=32, channel=0, samples=50,
+                           ref_rate=2, threshold=20, div_dct=True)
+
     # if len(sys.argv) < 2:
     #     print("Please specify the image folder.")
     #     exit(-1)
