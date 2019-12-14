@@ -5,6 +5,8 @@
 \hyphenation{op-tical net-works semi-conduc-tor}
 \usepackage{amsmath}
 \usepackage{comment}
+\usepackage{graphicx} 
+\usepackage{subfigure}
 %\usepackage{cases}
 %\usepackage{subeqnarray}
 
@@ -71,55 +73,74 @@ IEEEtran, journal, \LaTeX, paper, template.
 \section{Introduction}
 \IEEEPARstart{T}{his}
 
-\section{Subjective IQA}
+\section{Related Work}
+% lcx
+\section{Subsampling and Interpolation}
 
-\section{Objective IQA}
+\subsection{Subsampling}
+Resampling using pixel area relation. Suppose $x\times y$ image subsampled down to size $x'\times y'$. scale\_x = x/x', scale\_y = y/y', and then we get block $scale\_x \times scale\_y$, block\_area = $scale\_x \times scale\_y$, the new image's each pixel is the weighted average of pixels in corresponding block's of the original image: 
+\begin{align*}
+	p'(x',y')=\sum_{i,j}{\frac{covered\_area \cdot p(i,j)}{block\_area}}
+\end{align*}
+i,j are nonnegative integers, $i \in [scale\_x\times x,scale\_x\times (x+1)]$ $j \in [scale\_y\times y,scale\_y\times (y+1)]$
 
-\subsection{FR}
+\subsection{Interpolation}
+In the mathematical field of numerical analysis, interpolation is a type of estimation, a method of constructing new data points within the range of a discrete set of known data points. In this project we use bilinear interpolation, bicubic interpolation, Lanczos resampling.
 
-\subsubsection{Spatial Method}
-Peak signal-to-noise ($PSNR$) is a classic objective full-reference $IQA$ metric and is commonly used to measure the fidelity of degraded images. $PSNR$ is most easily defined via mean square error ($MSE$). Given a $m \times n$ reference image $I$ and its distorted version $K$, the $MSE$ is defined as equation \ref{eq:PSNR 1}.
-\begin{equation}
-MSE = \frac{1}{mn} \sum\limits_{i=0}^{m-1} \sum\limits_{j=0}^{n-1} [I(i,j)-K(i,j)]^2
-\label{eq:PSNR 1}
-\end{equation}
-And the $PSNR$ (in $dB$) is defined as:
-\begin{equation}
-PSNR = 10\log_{10} (\frac{MAX_I^2}{MSE})
-\label{eq:PSNR 2}
-\end{equation}
-where $MAX_I^2$ is the maximum possible pixel value of the $I$ ($i.e.$ peak value). However, in some circumstances, the $PSNR$ is unequal to the perceptual quality prediction task because the human perception is depended on much more complicated factors.
+\subsubsection{Bilinear Interpolation}
+~\\
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{fig/1.png}
+	\label{fig:Bilinear Interpolation}
+\end{figure}
+\par First do linear interpolation in the x-direction:
+\begin{align*}
+p(R_1) = \frac{x_2-x}{x_2-x_1}\cdot p(Q_{11})+\frac{x-x_1}{x_2-x_1}\cdot p(Q_{21})\\
+p(R_2) = \frac{x_2-x}{x_2-x_1}\cdot p(Q_{12})+\frac{x-x_1}{x_2-x_1}\cdot p(Q_{22})
+\end{align*}
+Then interpolate in the y-direction:
+\begin{align*}
+p(P) &= \frac{y2-y}{y2-y1}\cdot p(R_1)+\frac{y-y1}{y2-y1}\cdot p(R_2)\\ &=\small{\frac {1}{(x_{2}-x_{1})(y_{2}-y_{1})}}{\begin{bmatrix}x_{2}-x&x-x_{1}\end{bmatrix}}{\begin{bmatrix}f(Q_{11})&f(Q_{12})\\f(Q_{21})&f(Q_{22})\end{bmatrix}}{\begin{bmatrix}y_{2}-y\\y-y_{1}\end{bmatrix}}
+\end{align*}
+\par We can get the corresponding pixel's coordinate in original image: $x'\cdot scale\_x=x$, $y'\cdot scale\_y=y$. If either x or y is not integer, $x_1=int(x),x_2=int(x)+1,y_1=int(y), y_2=int(y)+1$, do interpolation.
+\par This algorithm reduces some of the visual distortion caused by resizing an image to a non-integral zoom factor.
+~\\
+\subsubsection{Bicubic Interpolation}
+~\\
+\par In this method, new image’s pixel at point (x', y'), p(x',y'), is the weighted average of the nearest 16 points in the original image. An interpolator can be obtained by applying a convolution with the following kernel in both dimensions:
+\begin{align*}
+{\displaystyle W(x)={\begin{cases}(a+2)|x|^{3}-(a+3)|x|^{2}+1&{\text{for }}|x|\leq 1,\\a|x|^{3}-5a|x|^{2}+8a|x|-4a&{\text{for }}1<|x|<2,\\0&{\text{otherwise}},\end{cases}}}
+\end{align*}
+where a is usually set to −0.5 or −0.75.
+\par $x'\cdot scale\_x=x$, $y'\cdot scale\_y=y$. If either x or y is not integer, $x_i$=int(x+i), $y_j$=int(y+j), i, j = -1,0,1,2:
 
-
-
-\subsubsection{Transformation-based Method}
-Sheikh \textit{et al.} \cite{SheiNSSFR} explored the image quality assessment problem from the perspective of information theory, and they utilized the widely investigated natural scene statistics ($NSS$) models to fit the quality score. Specifically, they adopted two different $NSS$ models to represent the reference image and distorted image. The reference image is expressed by Gaussian Scale Mixtures ($GSM$) in the wavelet domain, while the distorted image is expressed by a simple signal attenuation and additive Gaussian noise model in the wavelet domain. The final information fidelity criterion ($IFC$) is derived from the mutual information between the source and distorted images as equation \ref{eq:NSS 1}-\ref{eq:NSS 2}.
-\begin{equation}
-I(C^N; D^N | S^N) = \frac{1}{2} \sum\limits_{i=1}^{N}\log_2(1+\frac{g_i^2 s_i^2 \sigma_U^2}{\sigma_V^2})
-\label{eq:NSS 1}
-\end{equation}
-
-\begin{equation}
-IFC = \sum_{k \in subbands}I(C^{N_k,k};D^{N_k,k}|s^{N_k,k})
-\label{eq:NSS 2}
-\end{equation}
-where equation \ref{eq:NSS 1} is the derived for one subband, and the final $IFC$ is the sum over all subbands.
-
-
-
-\subsubsection{Learning-based Method}
-Narwaria \textit{et al.} \cite{NarwariaFR} developed the machine learning technique and proposed a novel objective $IQA$ metric in 2010. The contribution of this job is using singular value decomposition ($SVD$) as features for quantifying image structural information. And the support vector regression served as a feature fusion tool to generate the quality score. The authors also pointed that the advantages of machine learning technique in $IQA$ devising are that the combination of the features are optimal and the weighting coefficients are adjustable so as to obtain the most appropriate settings.
-
-
-
-\subsection{Saliency-Guided IQA}
-Human visual attention is the behavioral and cognitive process of selectively concentrating on the special region of the stimulus. Image quality is highly related with artifacts located at salient regions. Saliency-gudied IQA has been widely investigated recently. We divided the saliency-gudied IQA metrics into two categories, which are indirect pooling manner and direct fitting manner. The indirect pooling manner is utilizing human attention information as weighting map to emphasize salient regions so as to promote IQA metrics' performances, while the direct fitting manner aims to explore the relationship between human attention variation and image quality degradation so as to devise new IQA metrics.
-Moreover, the indirect pooling manner can be further classified as subjective ground truth-based pooling manner and objective saliency map-based pooling manner.
-
-\subsubsection{Indirect Pooling Manner}
-\paragraph{Subjective Ground Truth-based Pooling Manner}
-
-Although objective saliency prediction model has been widely investigated, there is still a gap between state-of-the-art saliency models and real human fixation data. Fortunately, relying on the development of eye-tracking equipment, eye-tracking data has been the most accurate and solid proxy for visual attention information. Eye-tracking data-guided pooling strategy has been explored in recent years for improving IQA metrics.
+do interpolation in the x-direction:
+\begin{align*}
+p(x',y_j)=\sum_{i}{W(x-x_i)\cdot p(x_i,y_j)}
+\end{align*}
+then do interpolation in the y-direction:
+\begin{align*}
+p(x',y')=\sum_{j}{W(y-y_j)\cdot p(x',y_j)} 
+\end{align*}
+\par Images resampled with bicubic interpolation are smoother and have fewer interpolation artifacts.
+~\\
+\subsubsection{Lanczos Resampling}
+~\\
+\par The effect of each input sample on the interpolated values is defined by the filter's reconstruction kernel L(x), called the Lanczos kernel. 
+\begin{align*}
+{\displaystyle L(x)={\begin{cases}\operatorname {sinc} (x)\,\operatorname {sinc} (x/a)&{\text{if}}\ -a<x<a,\\0&{\text{otherwise}}.\end{cases}}}
+\end{align*}
+Equivalently,
+\begin{align*}
+{\displaystyle L(x)={\begin{cases}1&{\text{if}}\ x=0,\\{\dfrac {a\sin(\pi x)\sin(\pi x/a)}{\pi ^{2}x^{2}}}&{\text{if}}\ -a\leq x<a\ {\text{and}}\ x\neq 0,\\0&{\text{otherwise}}.\end{cases}}}
+\end{align*}
+\par The parameter $a$ is a positive integer, typically 2 or 3 (but in opencv, the method is cv2.INTER$\_$LANCZOS4, $a$=4), which determines the size of the kernel. The Lanczos kernel has $2a-1$ labes:a positive one at the center, and $a-1$ alternating negative and positive lobes on each side.
+\begin{align*}
+L(x,y) &= L(x) \cdot L(y)\\
+p(x',y') &= \sum_{i,j}{L(x_i-x)\cdot L(y_j-y)\cdot p(x_i,y_j)}
+\end{align*}
+$x_i=int(x+i)$, $y_j=int(y+j)$, $-a+1\leq i, j \leq a-1$
 
 
 
@@ -139,5 +160,3 @@ The conclusion goes here.
 
 % that's all folks
 \end{document}
-
-
