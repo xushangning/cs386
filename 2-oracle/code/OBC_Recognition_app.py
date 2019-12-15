@@ -12,10 +12,11 @@ def run(folder, output_fname, method, model_path, num_cat):
     assert format in ['csv', 'txt'], "The format of the output file should be either 'csv' or 'txt'."
 
     if method == 'DNN':
-        data, fnames = Dataset.get_image_folder(folder, num_cat, names=True, normalize=True)
+        data, fnames = Dataset.get_image_folder(folder, names=True, normalize=True)
         data[data < 0.5] = 0
     elif method == 'TM':
-        data, fnames = Dataset.get_image_folder(folder, num_cat, names=True, normalize=False)
+        model_path = "model/templ.pkl"
+        data, fnames = Dataset.get_image_folder(folder, names=True, normalize=False)
 
     if method == 'DNN':
         model = load_model(model_path)
@@ -24,7 +25,7 @@ def run(folder, output_fname, method, model_path, num_cat):
     elif method == 'TM':
         tm = TemplateMatch()
         tm.load_model(model_path)
-        y = tm.match(data)
+        y = tm.predict(data, num_cat)
 
     if format == 'csv':
         df = pd.DataFrame({'fname': fnames, 'label': y})
@@ -45,10 +46,11 @@ def parse_args():
         "--method", help="Method for classification. Either 'DNN' or 'TM'.",
         default='DNN', type=str)
     parser.add_argument(
-        "--model_path", help="Path to model for classification. Model should match 'method' and 'num_cat'.",
+        "--model_path", help="Path to model for classification. Model should match 'method' and 'num_cat'."
+                             "Auto adjustment for TM method.",
         default='model/weights_norm_cat10_v2.hdf5', type=str)
     parser.add_argument(
-        "--num_cat", help="Number of categories to classify. Either 10 or 40",
+        "--num_cat", help="Number of categories to classify. Either 10 or 40.",
         default=10, type=int)
     return parser.parse_args()
 

@@ -169,7 +169,7 @@ class TemplateMatch:
     #     scores = np.array([self.score(X, t) for t in self.templates])
     #     return softmax(scores.T, axis=1)
 
-    def predict(self, X, method=""):
+    def predict(self, X, num_cat, method=""):
         """
         :param X: number*height*width*channel
         :param method: optional
@@ -181,7 +181,9 @@ class TemplateMatch:
         if X.max() <= 1:
             X *= 255
         m = self.match(X)
-        return m // 4, m
+        if num_cat == 10:
+            m = m // 4
+        return m
 
 
 if __name__ == '__main__':
