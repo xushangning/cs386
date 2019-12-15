@@ -59,7 +59,7 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Oracle Bone Character Recognition\\ with CNN and Template Matching}
+\title{Oracle Bone Inscription Recognition\\ with CNN and Template Matching}
 %
 %
 % author names and IEEE memberships
@@ -73,7 +73,7 @@
 
 \author{
 	Zhongye~Wang,~\IEEEmembership{SJTU,}
-	Jinyu~Li,~\IEEEmembership{SJTU,}
+	Jingyu~Li,~\IEEEmembership{SJTU,}
 	Xiaoyi~Bao,~\IEEEmembership{SJTU,}
 	Shangning~Xu,~\IEEEmembership{SJTU,}
 	and Chenxuan~Li,~\IEEEmembership{SJTU}
@@ -97,7 +97,7 @@
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-	In this project, we tackle the task of oracle bone character detection based on the dataset created in class.
+	In this project, we tackle the task of oracle bone inscription (OBI) detection based on the dataset created in class.
 	Due to the limit size of dataset, we first augment data with affine transforms and noise transforms to obtain a larger and more robust dataset.
 	We then apply a simple CNN and template matching to implement models that can distinguish bone characters between micro categories (40 classes) and macro categories (10 classes).
 	We examine models using our homebrew bone character dataset and find the optimal models for micro and macro category classification tasks.
@@ -105,7 +105,7 @@
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-	Oracle bone character recognition, CNN, template matching, data augmentation.
+	OBI recognition, CNN, template matching, data augmentation.
 \end{IEEEkeywords}
 
 
@@ -114,7 +114,7 @@
 
 
 \section{Introduction}
-\IEEEPARstart{O}{racle} bone inscription (OBI) is the earliest known Chinese writing, which dates back to the late 2nd millennium BC. Detection and recognition of oracle bone inscription is crucial for the understanding of the social and political characteristics of ancient Chinese. It is also significant in education and arts nowadays, as OBI is a cultural heritage of both China and the human civilization.
+\IEEEPARstart{O}{racle} bone inscription (OBI) is the earliest known Chinese writing, which dates back to the late 2nd millennium BC. Detection and recognition of OBI is crucial for the understanding of the social and political characteristics of ancient Chinese. It is also significant in education and arts nowadays, as OBI is a cultural heritage of both China and the human civilization.
 
 In this paper, we propose different methods to detect hand-written oracle bone script, which facilitates interactive applications. We try both the traditional template matching and the convolutional neural network. We also make an ensemble of the two methods to get a better performance.
 
@@ -126,7 +126,7 @@ Currently, Deep learning is widely used in the field of object detection and cla
 
 % wzy
 \section{Data Augmentation}
-The original dataset contains 40 micro categories of oracle bone characters, each with 85 samples.
+The original dataset contains 40 micro categories of OBIs, each with 85 samples.
 Therefore, we have $40 \times 85 = 3400$ samples in total.
 This is barely enough for training a convolutional neural network without overfitting, and we need to apply data augmentation to obtain larger dataset adequate for training.
 
@@ -200,12 +200,12 @@ We select 10 images from each micro categories to form the validation set.
 Eventually, we end up tripling the size of the dataset with 9120 training samples and 400 validation samples.
 
 \section{Character Recognition}
-We use two different methods to address the character recognition task for oracle bone characters.
+We use two different methods to address the character recognition task for OBIs.
 We first learn a deep convolutional neural network to recognize characters, then use the template matching method for the same task.
 
 % wzy
 \subsection{Convolutional Neural Network}
-The deep neural network for learning the oracle bone characters has the structure in Figure~\ref{fig:network}.
+The deep neural network for learning the OBIs has the structure in Figure~\ref{fig:network}.
 
 \begin{figure}[h]
 	\centering
@@ -254,7 +254,7 @@ However, the performance of the ensemble models does not improve wrt. the origin
 
 % ljy
 \subsection{Template Matching}
-For the oracle bone character recognition task, we also try a traditional method, template matching, to solve it.
+For the OBI recognition task, we also try a traditional method, template matching, to solve it.
 
 The principle is simple. We construct a template for each character and measure the similarity of the sample and templates. The template that has the highest similarity is believed to be the character that sample represents.
 
@@ -278,7 +278,7 @@ To compare this method with the above convolutional neural network, we do the sa
 Then we test the accuracy of our models under more realistic circumstances.
 
 \subsection{Test Set}
-We test models on our homebrew dataset where we write oracle bone characters using different pens, on different papers, and captured under different lighting condition.
+We test models on our homebrew dataset where we write OBIs using different pens, on different papers, and captured under different lighting condition.
 Figure~\ref{fig:testset} shows samples in the test set.
 We can see that the background color and character color varies dramatically from those of the original dataset.
 Moreover, there are other noises such as the texture of the paper that could disturb our models.
