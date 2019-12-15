@@ -147,10 +147,10 @@ class TemplateMatch:
                                          normalize=True)
         X_val *= 255
 
-        m10, m40 = self.predict(X_val.copy())
+        m40 = self.predict(X_val.copy(), 40)
 
         print('method:', self.method)
-        print('cat10', np.mean(m10 == y_val // 4))
+        print('cat10', np.mean(m40 // 4 == y_val // 4))
         print('cat40', np.mean(m40 == y_val))
 
         if show_plot:
