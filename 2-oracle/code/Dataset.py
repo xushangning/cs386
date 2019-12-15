@@ -53,12 +53,14 @@ class Dataset:
         :param padding: add white padding around the image
         :return: images, labels
         """
-        path = '../dataset/' + folder + '/'
+        if filter_keys is not None or one_hot:
+            path = os.path.join('../dataset', folder)
+        else:
+            path = folder
         fnames = list(filter(lambda x: Dataset.aug_filter(x, filter_keys) ^ inclusive, os.listdir(path)))
-        cat = Dataset.folder_to_cat(folder, num_cat)
         imgs = []
         for fname in fnames:
-            img = Dataset.get_image_file(path + fname)
+            img = Dataset.get_image_file(os.path.join(path, fname))
             img = img.resize((Dataset.IMG_HEIGHT, Dataset.IMG_WIDTH), Image.ANTIALIAS)
             if normalize:
                 img = np.array(img)
@@ -66,11 +68,14 @@ class Dataset:
             if padding > 0:
                 img = ImageOps.expand(img, (padding, padding, padding, padding), 255)
             imgs.append(np.array(img))
-        if names:
-            return imgs, fnames
         imgs = np.array(imgs)
         if len(imgs.shape) < 4:
             imgs = imgs.reshape(imgs.shape + (1,))
+
+        if names:
+            return imgs, fnames
+
+        cat = Dataset.folder_to_cat(folder, num_cat)
         cats = np.repeat(cat, imgs.shape[0])
         if one_hot:
             cats = to_categorical(cats, num_cat)
