@@ -147,11 +147,11 @@ class TemplateMatch:
                                          normalize=True)
         X_val *= 255
 
-        m = self.match(X_val.copy())
+        m10, m40 = self.predict(X_val.copy())
 
         print('method:', self.method)
-        print('cat40', np.mean(m == y_val))
-        print('cat10', np.mean(m // 4 == y_val // 4))
+        print('cat10', np.mean(m10 == y_val // 4))
+        print('cat40', np.mean(m40 == y_val))
 
         if show_plot:
             plot_confusion_matrix(y_val // 4, m // 4, 10)
@@ -159,15 +159,29 @@ class TemplateMatch:
             plot_confusion_matrix(y_val, m, 40)
             plt.show()
 
-    def __call__(self, X):
-        '''
-        :param X: nparray m*h*w
-        :return: softmax score of each category
-        '''
-        # if X.ndim == 4:
-        #     X = X[:, :, :, 0]
-        scores = np.array([self.score(X, t) for t in self.templates])
-        return softmax(scores.T, axis=1)
+    # def __call__(self, X):
+    #     '''
+    #     :param X: nparray m*h*w
+    #     :return: softmax score of each category
+    #     '''
+    #     # if X.ndim == 4:
+    #     #     X = X[:, :, :, 0]
+    #     scores = np.array([self.score(X, t) for t in self.templates])
+    #     return softmax(scores.T, axis=1)
+
+    def predict(self, X, method=""):
+        """
+        :param X: number*height*width*channel
+        :param method: optional
+        :return: cat10_label, cat40_label
+        """
+        assert X.ndim == 4
+        if method:
+            self.method = method
+        if X.max() <= 1:
+            X *= 255
+        m = self.match(X)
+        return m // 4, m
 
 
 if __name__ == '__main__':
