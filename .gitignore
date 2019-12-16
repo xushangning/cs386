@@ -131,7 +131,7 @@ venv.bak/
 *.blg
 *.fdb_latexmk
 *.fls
-report.pdf
+*.pdf
 *.synctex.gz
 *.out
 *.pptx
