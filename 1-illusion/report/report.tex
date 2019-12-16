@@ -200,7 +200,30 @@ Existing collections of illusion images feature variety rather than volume or ma
 
 \subsection{Results}
 
-We use our own dataset for next-frame prediction and illusion detection. Due to the small size of our dataset, it is feasible for us to evaluate the effectiveness of our detection method on each image, both in the ``rotate'' group and the control group. We predict 22 frames for each image, and then the optical flow between the original image and its 7th frame is computed with Flownet and the traditional Lucas-Kanade method. Some representative images and their results are shown in Fig.~\ref{fig:representative-img-and-results}.
+We use our own dataset for next-frame prediction and illusion detection. Due to the small size of our dataset, it is feasible for us to evaluate the effectiveness of our detection method on each image, both in the ``rotate'' group and the control group. We predict 22 frames for each image, and then the optical flow between the original image and its 7th frame is computed with Flownet and the traditional Lucas-Kanade method. Some representative images and their results are shown in Fig.~\ref{fig:representative-img-and-results}. For intuitiveness, the optical-flow vector field computed by Flownet is sampled on fixed interval and plotted in Fig.~\ref{fig:vector-fields}.
+
+\subsection{Observations}
+
+From our experiment results in Fig.~\ref{fig:representative-img-and-results} and Fig.~\ref{fig:vector-fields}, some observations can be drawn:
+
+\paragraph{Neural networks can capture the motion in illusion images} From a human perspective, the 7th frame predicted by Prednet in Fig.~\ref{fig:representative-img-and-results} is almost identical to the original image, apart from the brightness change. However, Prednet predicts that the next frames of illusion images will have small motion compared with the original image.
+
+Traditional methods like Lucas-Kanade for computing the optical flow have the disadvantage that they work in a small neighborhood of the image and perform worse for images with significant motion. But in our task, the Lucas-Kanade method better captures the details in the predicted images and thus actually have an advantage.
+
+To further verify our findings, we compute optical flow for all images in our dataset and plot a histogram about magnitudes in Fig.~\ref{fig:histogram-of-magnitudes}. There is a significant difference in the distribution of magnitudes between the control images and the illusion images, which confirms the plausibility of our detection method.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig/flow-mag-plot-rotate.pdf}
+  \includegraphics[width=\linewidth]{fig/flow-mag-plot-control.pdf}
+  \caption{Histogram of magnitudes of optical-flow vectors computed with the Lucas-Kanade method, for the control and the ``rotate'' group.}
+  \label{fig:histogram-of-magnitudes}
+\end{figure}
+
+\paragraph{Prednet fails to recognize the direction of illusionary motion} Even though Prednet can ``see'' the illusion in the image, it misses the rotation direction in the illusion images, as evident in the last image of the second column of Fig.~\ref{fig:representative-img-and-results}. Some illusion images have directed rather than rotational motion. These images may be mistakenly classified as images with rotational illusion.
+
+\paragraph{Prednet's prediction seems to be highly dependent on the training dataset} In Watanabe \textit{et al.}'s experiment, Prednet, when trained on videos from the First-Person
+Social Interactions Dataset \cite{fathi2012social}, predicts significant and visible rotation for the upper-left image in Fig~.\ref{fig:representative-img-and-results}. But their experiment is limited to one single image and due to hardware limitation, we are unable to verify our hypothesis.
 
 \begin{figure*}
   \centering
@@ -224,7 +247,7 @@ We use our own dataset for next-frame prediction and illusion detection. Due to 
   \includegraphics[width=0.24\linewidth]{fig/lk-control-0.png}
   \includegraphics[width=0.24\linewidth]{fig/lk-control-1.png}
 
-  \caption{For Flownet, the output is a field of optical-flow vectors and visualized with a color field. Output for the Lucas-Kanade method is optical-flow vectors at keypoints in the images.}
+  \caption{Some representative images. The first row consists of the original images. The second row is the 7th frame predicted by Prednet from the original image. Optical flows are computed between the original image and the 7th frame. The third row is the optical- flow vector field computed by Flownet and visualized with a color field. Each color represents a direction. Output for the Lucas-Kanade method is optical-flow vectors at keypoints in the images, in the fourth row. In and only in visualization, all optical-flow vectors computed using the Lucas-Kanade are scaled 60 times before drawing for clear comparison.}
   \label{fig:representative-img-and-results}
 \end{figure*}
 
@@ -235,15 +258,10 @@ We use our own dataset for next-frame prediction and illusion detection. Due to 
 
   \includegraphics[width=0.45\linewidth]{fig/rotate-0-vector-field.pdf}
   \includegraphics[width=0.45\linewidth]{fig/rotate-1-vector-field.pdf}
-\end{figure*}
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{fig/flow-mag-plot-rotate.pdf}
-  \includegraphics[width=\linewidth]{fig/flow-mag-plot-control.pdf}
-  \caption{}
-  \label{}
-\end{figure}
+  \caption{Plotted optical-flow vector fields computed by Flownet. Each plot from left to right, up to down, corresponds to the images in Fig.~\ref{fig:representative-img-and-results} in a left-to-right order.}
+  \label{fig:vector-fields}
+\end{figure*}
 
 \section{Related Work}
 \label{sec:related}
