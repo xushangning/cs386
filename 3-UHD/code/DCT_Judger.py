@@ -95,9 +95,11 @@ def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, thres
 
 
 def classify_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True,
-                    thresholds_cut=(2.012829899787903, 3.586151076126429), method='rate2', size=None, offset=0):
+                    thresholds_cut=(2.1545941829681396, 3.656043997245576), method='rate2', size=None, offset=0):
+    # (2.012829899787903, 3.586151076126429)
     assert method in ['rate2', 'rate4', 'both'], "Parameter 'method' should be one of 'rate2', 'rate4', 'both'."
-    feats, fnames = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold, div_dct, return_fnames=True, size=size, offset=offset)
+    feats, fnames = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold, div_dct,
+                                           return_fnames=True, size=size, offset=offset)
     mask_rate2 = (feats[:, 0] > thresholds_cut[0])
     mask_rate4 = (feats[:, 3] > thresholds_cut[1])
     if method is 'rate2':
