@@ -189,11 +189,61 @@ Figure~\ref{fig:scheme} shows the scheme diagram for such reproduction strategy.
 \section{Experiments}
 \label{sec:experiments}
 
-\subsection{Illusion Detection}
-\label{sec:experiments_detection}
+\subsection{Dataset}
 
-\subsection{Illusion Generation}
-\label{sec:experiments_generation}
+Existing collections of illusion images feature variety rather than volume or machine readability, because these images are typically shared on social networks, displayed on websites and consumed by human beings. Robert and Roman's optical illusion image dataset \cite{williams2018optical} could be the first dataset about optical illusion published for research but lacks in organization. In light of these limitations,
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Describe how we collect the images: where are the images from and criteria
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Results}
+
+We use our own dataset for next-frame prediction and illusion detection. Due to the small size of our dataset, it is feasible for us to evaluate the effectiveness of our detection method on each image, both in the ``rotate'' group and the control group. We predict 22 frames for each image, and then the optical flow between the original image and its 7th frame is computed with Flownet and the traditional Lucas-Kanade method. Some representative images and their results are shown in Fig.~\ref{fig:representative-img-and-results}.
+
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.24\linewidth]{fig/rotate-0.png}
+  \includegraphics[width=0.24\linewidth]{fig/rotate-1.png}
+  \includegraphics[width=0.24\linewidth]{fig/control-0.png}
+  \includegraphics[width=0.24\linewidth]{fig/control-1.png}
+
+  \includegraphics[width=0.24\linewidth]{fig/rotate-0-7.png}
+  \includegraphics[width=0.24\linewidth]{fig/rotate-1-7.png}
+  \includegraphics[width=0.24\linewidth]{fig/control-0-7.png}
+  \includegraphics[width=0.24\linewidth]{fig/control-1-7.png}
+
+  \includegraphics[width=0.24\linewidth]{fig/rotate-0-flo.png}
+  \includegraphics[width=0.24\linewidth]{fig/rotate-1-flo.png}
+  \includegraphics[width=0.24\linewidth]{fig/control-0-flo.png}
+  \includegraphics[width=0.24\linewidth]{fig/control-1-flo.png}
+
+  \includegraphics[width=0.24\linewidth]{fig/lk-rotate-0.png}
+  \includegraphics[width=0.24\linewidth]{fig/lk-rotate-1.png}
+  \includegraphics[width=0.24\linewidth]{fig/lk-control-0.png}
+  \includegraphics[width=0.24\linewidth]{fig/lk-control-1.png}
+
+  \caption{For Flownet, the output is a field of optical-flow vectors and visualized with a color field. Output for the Lucas-Kanade method is optical-flow vectors at keypoints in the images.}
+  \label{fig:representative-img-and-results}
+\end{figure*}
+
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.45\linewidth]{fig/control-0-vector-field.pdf}
+  \includegraphics[width=0.45\linewidth]{fig/control-1-vector-field.pdf}
+
+  \includegraphics[width=0.45\linewidth]{fig/rotate-0-vector-field.pdf}
+  \includegraphics[width=0.45\linewidth]{fig/rotate-1-vector-field.pdf}
+\end{figure*}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig/flow-mag-plot-rotate.pdf}
+  \includegraphics[width=\linewidth]{fig/flow-mag-plot-control.pdf}
+  \caption{}
+  \label{}
+\end{figure}
 
 \section{Related Work}
 \label{sec:related}
