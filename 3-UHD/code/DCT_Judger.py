@@ -35,7 +35,7 @@ def self_ref_dct_complete(img, tile, channel=0, rate=2, threshold=20):
     return np.array(dcts)
 
 
-def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True):
+def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, offset=0):
     if len(img.shape) > 3:
         img = img[:, :, channel]
 
@@ -53,7 +53,7 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
     stds = []
     for i, j in idxs:
         if div_dct:
-            dct = dct_tile(img[:, :], i, j, tile, rate=ref_rate, divide_ref=div_dct).flatten()
+            dct = dct_tile(img[:, :], i, j, tile, rate=ref_rate, divide_ref=div_dct).flatten() - offset
             dct = dct[abs(dct) < threshold]
             abd = abs_dev(dct)
             std = sqr_dev(dct)
@@ -69,16 +69,18 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
            np.array(dcts), np.array(abds), np.array(stds)
 
 
-def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, return_fnames=False, size=None):
+def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, return_fnames=False, size=None, offset=0):
     fnames = [e for e in os.listdir(folder) if e.split('.')[-1] in ('bmp', 'jpg', 'png')]
     print("Processing {}".format(folder))
     feats = []
+    if size is None:
+        size = len(fnames)
     for i, fname in enumerate(fnames):
-        if size is not None and i >= size:
+        if i >= size:
             break
         print('{} / {}'.format(i, min(len(fnames), size)))
         img = get_image(os.path.join(folder, fname))
-        feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct)
+        feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct, offset)
         feats.append(feat)
 
     if return_fnames:
@@ -86,16 +88,16 @@ def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, thre
     return np.array(feats)
 
 
-def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True):
+def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, offset=0):
     img = get_image(fname)
-    feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct)
+    feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct, offset)
     print(np.array(feat))
 
 
 def classify_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True,
-                    thresholds_cut=(2.012829899787903, 3.586151076126429), method='rate2', size=None):
+                    thresholds_cut=(2.012829899787903, 3.586151076126429), method='rate2', size=None, offset=0):
     assert method in ['rate2', 'rate4', 'both'], "Parameter 'method' should be one of 'rate2', 'rate4', 'both'."
-    feats, fnames = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold, div_dct, return_fnames=True, size=size)
+    feats, fnames = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold, div_dct, return_fnames=True, size=size, offset=offset)
     mask_rate2 = (feats[:, 0] > thresholds_cut[0])
     mask_rate4 = (feats[:, 3] > thresholds_cut[1])
     if method is 'rate2':
@@ -144,6 +146,9 @@ def parse_args():
     parser.add_argument(
         "--max_image", help="Divide reference before statistics.",
         default=None, type=int)
+    parser.add_argument(
+        "--offset", help="Shift the relative DCT value to left by 'offset'.",
+        default=0, type=float)
     return parser.parse_args()
 
 
@@ -171,7 +176,8 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     res = classify_folder(args.input_folder, args.tile, args.channel, args.samples,
-                          args.ref_rate, args.threshold, args.div_ref, size=args.max_image)
+                          args.ref_rate, args.threshold, args.div_ref, size=args.max_image,
+						  offset=args.offset)
     np.savetxt(args.output_filename, res)
 
     # extract_feature_single('images/1080P/bicubic/32.bmp', tile=32, channel=0, samples=50,
