@@ -180,18 +180,64 @@ Figure~\ref{fig:scheme} shows the scheme diagram for such reproduction strategy.
 
 \subsection{Measuring Illusion Intensity}
 \label{sec:detection_measure}
+\begin{enumerate}
+  \item Based on the motion reproduction model, we are able to represent the illusory motion with optical flows. However, we prefer a way to quantify the intensity of such motion.
+  \item Why? \begin{enumerate}
+    \item Need an objective criteria to determine the existence of motion illusion. Explain detailed reasons.
+    \item We need a numerical measurement of the intensity if we want to use GAN or similar optimization method to produce intensive illusion. Explain why.
+  \end{enumerate}
+  \item How? \begin{enumerate}
+    \item Simply sum up the norm. Explain the problem.
+    \item Find the rotation center and corresponding torque. Explain difficulty.
+    \item Other methods.
+  \end{enumerate}
+\end{enumerate}
 
 \subsection{Integrated Detector with Flownet}
 \label{sec:detection_idf}
+\begin{enumerate}
+  \item We want to use flownet to replace the traditional optical flow procedure.
+  \item Pros. \begin{enumerate}
+    \item A convenient way to back propagate the error back to the prednet and further propagate it to the generator under the framework of GAN. Therefore the generator could improve the quality of illusory image.
+    \item Maybe some others.
+  \end{enumerate}
+  \item Cons. \begin{enumerate}
+    \item Slow.
+    \item Heavy.
+    \item Black box.
+    \item Maybe some others.
+  \end{enumerate}
+  \item How? \begin{enumerate}
+    \item Need to restructure the output of flownet to fit the context of our model. Vector field to something more quantifiable.
+    \item Assemble the adjusted flownet with the prednet to form the discriminator.
+    \item Possible fine tuning the integrated discriminator.
+  \end{enumerate}
+\end{enumerate}
 
 \section{Motion Illusion Creation: Asymmetric GAN}
 \label{sec:generation}
+\begin{enumerate}
+  \item A brief introduction of the traditional GAN. (generator + discriminator + alternating training + the design of training loss)
+  \item In this scenario, we already have a working discriminator, and therefore we only need to design and train the generator. The training of discriminator is offline, therefore asymmetric.
+\end{enumerate}
 
 \subsection{Motion Illusion Generator}
 \label{sec:generation_generator}
+\begin{enumerate}
+  \item Design a generator. \begin{enumerate}
+    \item Traditional DNN generator. (briefly explain the one in the original paper)
+    \item A simpler generator. Possibly some analytic functions that can be used for generating symmetric images.
+  \end{enumerate}
+\end{enumerate}
 
 \subsection{Sanity Constraint Criteria}
 \label{sec:generation_criteria}
+\begin{enumerate}
+  \item The illusion intensity itself is not enough. Random noises might also have large illusion intensity. Sanity check of the image. \begin{enumerate}
+    \item Local entropy.
+    \item If using analytic function generator could avoid this.
+  \end{enumerate}
+\end{enumerate}
 
 \section{Experiments}
 \label{sec:experiments}
