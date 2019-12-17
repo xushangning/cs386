@@ -214,7 +214,7 @@ We can use DCT to extract the magnitudes at different frequencies, and observe t
 We goes with the latter approach, while the former one is more promising if we have efficient way to identify similarities between sampled values of functions.
 Nevertheless, we need a way to extract features of those functions in both approaches, that is where discrete cosine transform (DCT) come into place.
 
-\subsubsection{Relative DCT Analysis}
+\subsubsection{Relative DCT (RDCT) Analysis}
 Different from traditional DCT analysis, we introduce the concept of relative DCT analysis based on the idea of reference image proposed in \ref{sec:enumerative}.
 The DCT coefficients for the original image are given by \eqref{eq:dct}.
 \begin{equation}
@@ -252,6 +252,54 @@ For some tile width $T$, we define the $(i, j)$ tile of image in \eqref{eq:tile}
 	\label{eq:tile}
 \end{equation}
 We denote the relative DCT coefficients for the tile as $\mathcal{D}_r^{(i, j)}(u, v)$.
+
+Figure~\ref{fig:rdct_hist} shows the distribution of RDCT coefficients with magnitudes less than 20 in tiles of a sample image, where we use a reference sampling rate of 2 and use the nearest neighbor as a reference interpolation.
+
+\begin{figure}[h]
+	\centering
+	\begin{minipage}{\linewidth}
+		\subfigure[Histogram for Small RDCT Coefficients in a 4K Sample]{
+			\includegraphics[width=\linewidth]{fig/rel_dct_hist_4k.png}
+			\label{fig:rdct_hist_4k}
+		}
+	\end{minipage}
+	\begin{minipage}{\linewidth}
+		\subfigure[Histogram for Small RDCT Coefficients in an upsampled 1080P Sample]{
+			\includegraphics[width=\linewidth]{fig/rel_dct_hist_1080.png}
+			\label{fig:rdct_hist_1080}
+		}
+	\end{minipage}
+	\caption{Histograms for Small RDCT Coefficients in the 64 Tiles on the Upper-Left Corner of 1.bmp: The x-axis is the magnitudes of RDCT coefficients ranging from -20 to 20.}
+	\label{fig:rdct_hist}
+\end{figure}
+
+\subsection{Relative Energy Spectrum}
+We can observe the distributions of RDCT coefficients are more flat for the true 4K image in Figure~\ref{fig:rdct_hist_4k} than those in the fake, upsampled 1080P image in Figure~\ref{fig:rdct_hist_1080}, with the peaks in the latter appearing more sharp.
+
+This phenomenon is actually prevalent not only in these tiles of the image, but also in most of tiles in all sample images.
+We can interpolate it as follows:\begin{enumerate}
+	\item The fake image become more smooth with value functions in different regions more unified towards the interpolation function. Therefore, some less relevant components (frequencies with small RDCT coefficients) will be suppressed in the fake, interpolated samples.
+	\item This does not mean that the components with large magnitudes are also suppressed. In fact, most of them stays the same as those in the original image, because they compose the dominant content of the image.
+\end{enumerate}
+
+Based on this knowledge, we step further to calculate the average relative energy spectrum in tile $(i, j)$ using \eqref{eq:energy}.
+\begin{equation}
+	E_r^{(i, j)} = \int_{u,v} \big|\mathcal{D}_r^{(i, j)}(u, v)\big|^2 dudv \Big/ \int_{u,v} dudv
+	\label{eq:energy}
+\end{equation}
+
+Figure~\ref{fig:ave-energy-hist} shows the average relative energy distribution for tiles in Figure~\ref{fig:rdct_hist}.
+It is obviously that the relative energy of the real UHD tiles is higher than those of all upsampled tiles.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{fig/rel_energy_4k_1080.png}
+	\caption{Histogram of Tile-Average Relative Energy Distribution}
+	\label{fig:ave-energy-hist}
+\end{figure}
+
+This gives us a preferable criteria to discriminate real and fake UHD image using relative DCT and energy spectrum analysis.
+We will then examine other ways of constructing the reference image and calculating the energy spectrum.
 
 \section{Conclusion}
 The conclusion goes here.
