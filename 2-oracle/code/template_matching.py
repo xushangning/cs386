@@ -2,19 +2,11 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from Dataset import Dataset, pipeline, ALL_KEYS
-from PIL import Image
 import pickle
 import os
-from scipy.special import softmax
 
 from utils import plot_confusion_matrix
 
-Dataset.IMG_HEIGHT = 64
-Dataset.IMG_WIDTH = 64
-
-
-# PADDING = 40
-# SCALE_THRESHOLD = 0.99
 
 class TemplateMatch:
     def __init__(self, padding=40, scale_threshold=0.99, method='CCORR_NORMED'):
@@ -27,9 +19,6 @@ class TemplateMatch:
     def get_best_scale(self, img):
         # set near white color to white
         img[img > self.white_thres] = 255
-        # plt.hist(img.ravel())
-        # plt.show()
-        # add padding
         img = cv2.copyMakeBorder(img, self.padding, self.padding, self.padding, self.padding,
                                  cv2.BORDER_CONSTANT, None, 255)
 
@@ -40,7 +29,6 @@ class TemplateMatch:
         suminv = np.sum(inv)
         cx = int(round(np.sum(inv * accx) / suminv))
         cy = int(round(np.sum(inv * accy) / suminv))
-        # print(cx,cy)
 
         # find the smallest square that enclose 99% of mass
         thres = self.scale_threshold
@@ -64,9 +52,6 @@ class TemplateMatch:
         for i in range(group.shape[0]):
             img = self.get_best_scale(group[i])
             templ += cv2.resize(img, size)
-        # show template
-        # plt.imshow(templ / group.shape[0])
-        # plt.show()
         return templ / group.shape[0]
 
     def score(self, group, template):
@@ -77,7 +62,6 @@ class TemplateMatch:
         for i in range(group.shape[0]):
             new_group[i] = cv2.resize(self.get_best_scale(group[i]), template.shape)
 
-        # custom implement
         if self.method == 'MSE':
             return np.mean((new_group - template) ** 2, axis=(1, 2))
         if self.method == 'MSE_NORMED':
@@ -90,19 +74,6 @@ class TemplateMatch:
             num = np.sum(new_group * template, axis=(1, 2))
             den = np.sqrt(np.sum(new_group ** 2, axis=(1, 2)) * np.sum(template ** 2))
             return num / den
-
-        # use cv2.matchTemplate
-        # else:
-        # # move template around to get the best match
-        # res = [cv2.matchTemplate(new_group[i], template.astype(np.uint8), eval('cv2.TM_' + method)) for i in
-        #        range(new_group.shape[0])]
-        # minmax = np.array([cv2.minMaxLoc(res[i]) for i in range(new_group.shape[0])])
-        # min_vals = minmax[:, 0]
-        # max_vals = minmax[:, 1]
-        # if method in ['SQDIFF', 'SQDIFF_NORMED']:
-        #     return min_vals
-        # else:
-        #     return max_vals
 
     def match(self, dataset):
         scores = np.array([self.score(dataset, t) for t in self.templates])
@@ -121,8 +92,6 @@ class TemplateMatch:
         for i in range(40):
             templ = self.get_template(X_train[y_train == i])
             self.templates.append(templ)
-            # plt.imshow(temp,cmap='gray')
-            # plt.show()
         if output_dir:
             model = {'padding': self.padding, 'scale_thres': self.scale_threshold, 'templates': self.templates}
             if not os.path.exists(output_dir):
@@ -158,16 +127,6 @@ class TemplateMatch:
             plt.show()
             plot_confusion_matrix(y_val, m, 40)
             plt.show()
-
-    # def __call__(self, X):
-    #     '''
-    #     :param X: nparray m*h*w
-    #     :return: softmax score of each category
-    #     '''
-    #     # if X.ndim == 4:
-    #     #     X = X[:, :, :, 0]
-    #     scores = np.array([self.score(X, t) for t in self.templates])
-    #     return softmax(scores.T, axis=1)
 
     def predict(self, X, num_cat, method=""):
         """

@@ -32,16 +32,6 @@ class OracleNetTrainer(object):
         # load original data
         self.X_train, y_train = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val', 'test'], normalize=True)
         self.X_val, y_val = Dataset.load_data(num_cat=40, one_hot=False, filter_keys=['val'], inclusive=True, normalize=True)
-        # X_train = X_train.reshape(X_train.shape)
-        # X_val = X_val.reshape(X_val.shape)
-        # X, y = Dataset.load_data(one_hot=False, num_cat=40)
-        # normalize image to 0.0 - 1.0
-        # covert to different categories
-        # y40 = Dataset.to_onehot(y, 40)
-        # y = Dataset.cat40_to_cat10(y)
-        # y10 = Dataset.to_onehot(y, 10)
-        # train test split
-        # idx = list(range(y40.shape[0]))
         self.y_train = {}
         self.y_val = {}
         self.y_train[40] = Dataset.to_onehot(y_train, 40)
@@ -50,9 +40,6 @@ class OracleNetTrainer(object):
         self.y_val[40] = Dataset.to_onehot(y_val, 40)
         y_val = Dataset.cat40_to_cat10(y_val)
         self.y_val[10] = Dataset.to_onehot(y_val, 10)
-        # self.X_train, self.X_val, y_train_idx, y_val_idx = train_test_split(X, idx, test_size=test_size, shuffle=True)
-        # self.y_train[40], self.y_val[40] = y40[y_train_idx], y40[y_val_idx]
-        # self.y_train[10], self.y_val[10] = y10[y_train_idx], y10[y_val_idx]
         # initialize callbacks
         self.checkpointer = ModelCheckpoint(filepath=autosave_path, verbose=1, save_best_only=True)
         self.visualizer = VisualizationCallback(vis_on_batch)
@@ -179,6 +166,7 @@ def cat10_model_conv():
     model.compile(loss='categorical_crossentropy', optimizer=sgd,
                   metrics=['accuracy'])
     return model
+
 
 def ensemble(model_cat10, model_cat40, num_cat):
     imgs = L.Input(shape=(64, 64, 1), name='ensemble_input')

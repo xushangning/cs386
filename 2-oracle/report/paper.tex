@@ -1,4 +1,4 @@
-\documentclass[journal]{IEEEtran}
+\documentclass[journal,conference]{IEEEtran}
 
 
 % correct bad hyphenation here
@@ -225,8 +225,9 @@ Figure~\ref{fig:network-confusion} shows the confusion matrix for the validation
 \begin{figure}[h]
 	\centering
 	\begin{minipage}{\linewidth}
+		\hspace{-1.5em}
 		\subfigure[Confusion Matrix for 10 Category Classification]{
-			\includegraphics[width=\linewidth]{fig/confusion_oraclenet_conv10.png}
+			\includegraphics[width=1.1\linewidth]{fig/confusion_oraclenet_conv10.png}
 			\label{fig:network-confusion-10}
 		}
 	\end{minipage}
@@ -296,7 +297,7 @@ Moreover, there are other noises such as the texture of the paper that could dis
 There are 400 samples in the test set, 10 samples for each micro category.
 We only write 200 samples and double the size by capturing them under different lighting.
 
-\subsection{Evaluation and Improvements}
+\subsection{Model Evaluation}
 To recognize characters in the test set, we need to first preprocess the samples.
 
 We first obtain the grey scale version of the images.

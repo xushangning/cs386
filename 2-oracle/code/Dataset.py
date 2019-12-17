@@ -13,8 +13,6 @@ ALL_KEYS = ('val', 'flipped', 'affine', 'noise', 'test')
 
 class Dataset:
     # default resize images to following size
-    # IMG_HEIGHT = 89
-    # IMG_WIDTH = 81
     IMG_HEIGHT = 64
     IMG_WIDTH = 64
 
@@ -26,9 +24,10 @@ class Dataset:
                     return False
         return True
 
-    # convert the folder name into categories
     @staticmethod
     def folder_to_cat(folder, num_cat=10):
+        """ Convert the folder name into categories
+        """
         assert num_cat in [10, 40], "Number of categories can only be 10 or 40"
         return (int(folder) - 102) // (40 / num_cat)
 
@@ -36,17 +35,15 @@ class Dataset:
     def cat40_to_cat10(cats):
         return cats // 4
 
-    # read single image
     @staticmethod
     def get_image_file(fname):
-        # img = np.array(Image.open(fname))
         img = Image.open(fname).convert('L')
-        return img  # .reshape(img.shape + (1,))
+        return img
 
     @staticmethod
     def get_image_folder(folder, num_cat=10, one_hot=False, filter_keys=None, inclusive=False, names=False, padding=0, normalize=False):
         """
-        get all resized images and their labels in one folder
+        Get all resized images and their labels in one folder
         :param folder: folder name
         :param num_cat: number of categories, 10 or 40
         :param one_hot: whether to use one hot encoding
@@ -88,7 +85,7 @@ class Dataset:
     @staticmethod
     def load_data(num_cat=10, one_hot=False, filter_keys=None, inclusive=False, padding=0, normalize=False):
         """
-        load all images in dataset folder
+        Load all images in dataset folder
         :param num_cat: number of categories
         :param one_hot: whether to use one hot encoding
         :return: X: shape [N, IMG_HEIGHT, IMG_WIDTH],
@@ -181,7 +178,7 @@ class DataAugmentation(object):
     @staticmethod
     def mark_val_folder(folder, path='../dataset/', val_per_cat=10, filter_keys=None):
         """
-
+        Mark validation samples.
         :param folder:
         :param path:
         :param val_size:
@@ -228,8 +225,10 @@ class DataAugmentation(object):
 
 
 def pipeline():
+    """ Run the pipeline to construct entire dataset.
+    """
     # set/reset valiation set
-    # DataAugmentation.mark_val_all()
+    DataAugmentation.mark_val_all()
     # DataAugmentation.reset_val_all()
 
     # augmentation
@@ -256,52 +255,5 @@ def pipeline():
 
 if __name__ == '__main__':
     # run pipelined augmentation
-    # Dataset.clear_all()
+    Dataset.clear_all()
     pipeline()
-
-    # X_train, y_train = Dataset.load_data(one_hot=True, filter_keys=['val'], num_cat=40)
-    # X_val, y_val = Dataset.load_data(one_hot=True, filter_keys=['val'], inclusive=True, num_cat=40)
-    # print((X_train.shape, y_train.shape, X_val.shape, y_val.shape))
-    # print(y_train.sum(axis=0))
-
-    # DataAugmentation.mark_val_all()
-    # DataAugmentation.reset_val_all()
-
-    # test mark/reset val
-    # DataAugmentation.mark_val_folder('0130')
-    # DataAugmentation.reset_val_folder('0130')
-
-    # test remove
-    # Dataset.clear_folder('0130', filter_keys=['flipped'])
-    # Dataset.clear_all(filter_keys=['flipped'])
-
-    # augment folder
-    # auger = DataAugmentation()
-    # auger.aug_folder(auger.affine, 'affine', '0102')
-    # auger.aug_folder(auger.flip, 'flipped', '0114')
-    # auger.aug_folder(auger.flip, 'flipped', '0115')
-    # auger.aug_folder(auger.flip, 'flipped', '0116')
-    # auger.aug_folder(auger.flip, 'flipped', '0117')
-    # auger.aug_folder(auger.flip, 'flipped', '0128', '0127')
-    # auger.aug_folder(auger.flip, 'flipped', '0127', '0128')
-    # auger.aug_folder(auger.flip, 'flipped', '0119', '0121')
-    # auger.aug_folder(auger.flip, 'flipped', '0121', '0119')
-    # auger.aug_folder(auger.flip, 'flipped', '0130', '0131')
-    # auger.aug_folder(auger.flip, 'flipped', '0131', '0130')
-    # Dataset.clear_all()
-
-    # preview augmentation
-    # auger.preview(auger.noise, '../dataset/0130/person_0000.jpg')
-    # auger.preview(auger.flip, '../dataset/0130/person_0000.jpg')
-    # auger.preview(auger.affine, '../dataset/0130/person_0000.jpg')
-
-    # test load data
-    # X, y = Dataset.load_data()
-    # print(X.shape)
-    # print(y.shape)
-    # shapes = np.array([x.shape for x in X])
-    # print(np.unique(shapes[:, 0]))
-    # print(np.unique(shapes[:, 1]))
-    # [89 93 101]
-    # [81 91]
-    pass

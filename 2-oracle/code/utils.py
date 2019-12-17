@@ -6,18 +6,11 @@ from sklearn.utils.multiclass import unique_labels
 
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
-                          title=None,
                           cmap=plt.cm.Blues):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
-    if not title:
-        if normalize:
-            title = 'Normalized confusion matrix'
-        else:
-            title = 'Confusion matrix, without normalization'
-
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     # Only use the labels that appear in the data
@@ -39,7 +32,6 @@ def plot_confusion_matrix(y_true, y_pred, classes,
            yticks=np.arange(cm.shape[0]),
            # ... and label them with the respective list entries
            xticklabels=np.arange(classes), yticklabels=np.arange(classes),
-           # title=title,
            ylabel='True label',
            xlabel='Predicted label')
 
