@@ -33,6 +33,9 @@ def parse_args():
     parser.add_argument(
         "--max_image", help="Divide reference before statistics.",
         default=None, type=int)
+    parser.add_argument(
+        "--ref_method", help="Interpolation in reference images.",
+        default='AR', type=str)
     return parser.parse_args()
 
 
@@ -40,8 +43,8 @@ if __name__ == '__main__':
     args = parse_args()
     feats = extract_feature_folder(args.folder, args.tile, args.channel, args.samples,
                                    args.ref_rate, args.threshold, args.div_ref,
-								   offset=args.offset, size=args.max_image)
-    np.savetxt(os.path.join(args.folder, "tile_{}_channel_{}_samples_{}_rate_{}_threshold_{}_div_{}_offset_{}.txt"
-               .format(args.tile, args.channel, args.samples,
-                       args.ref_rate, args.threshold,
-                       args.div_ref, args.offset)), feats)
+								   offset=args.offset, size=args.max_image, ref_method=args.ref_method)
+    np.savetxt(os.path.join(args.folder, "tile_{}_channel_{}_samples_{}_rate_{}_threshold_{}_div_{}"
+                                         "_offset_{}_ref_{}.txt".format(args.tile, args.channel, args.samples,
+                                                                        args.ref_rate, args.threshold, args.div_ref,
+                                                                        args.offset, args.ref_method)), feats)

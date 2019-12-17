@@ -7,13 +7,13 @@ import os
 import argparse
 
 
-def dct_tile(img, i, j, tile, channel=0, rate=2, divide_ref=True):
+def dct_tile(img, i, j, tile, channel=0, rate=2, divide_ref=True, ref_int=cv2.INTER_AREA):
     img = np.float32(img)
     if len(img.shape) < 3:
         img_tile = img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile]
     else:
         img_tile = img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile, channel]
-    img_ref = cv2.resize(down_sample(img_tile, rate), dsize=img_tile.shape, interpolation=cv2.INTER_AREA)
+    img_ref = cv2.resize(down_sample(img_tile, rate), dsize=img_tile.shape, interpolation=ref_int)
     if divide_ref:
         tmp = cv2.dct(img_tile) / cv2.dct(img_ref)
     else:
@@ -35,7 +35,16 @@ def self_ref_dct_complete(img, tile, channel=0, rate=2, threshold=20):
     return np.array(dcts)
 
 
-def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, offset=0):
+def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=20,
+                        div_dct=True, offset=0, ref_method='AR'):
+    ref_method_dict = {
+        'AR': cv2.INTER_AREA,
+        'NN': cv2.INTER_NEAREST,
+        'BL': cv2.INTER_LINEAR,
+        'BC': cv2.INTER_CUBIC,
+    }
+    assert ref_method in ref_method_dict.keys(), \
+        'The reference method can only be one of ' + str(ref_method_dict.keys())
     if len(img.shape) > 3:
         img = img[:, :, channel]
 
@@ -53,7 +62,8 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
     stds = []
     for i, j in idxs:
         if div_dct:
-            dct = dct_tile(img[:, :], i, j, tile, rate=ref_rate, divide_ref=div_dct).flatten() - offset
+            dct = dct_tile(img[:, :], i, j, tile,rate=ref_rate, divide_ref=div_dct,
+                           ref_int=ref_method_dict[ref_method]).flatten() - offset
             dct = dct[abs(dct) < threshold]
             abd = abs_dev(dct)
             std = sqr_dev(dct)
@@ -69,7 +79,8 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
            np.array(dcts), np.array(abds), np.array(stds)
 
 
-def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, return_fnames=False, size=None, offset=0):
+def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20,
+                           div_dct=True, return_fnames=False, size=None, offset=0, ref_method='AR'):
     fnames = [e for e in os.listdir(folder) if e.split('.')[-1] in ('bmp', 'jpg', 'png')]
     print("Processing {}".format(folder))
     feats = []
@@ -80,7 +91,8 @@ def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, thre
             break
         print('{} / {}'.format(i, min(len(fnames), size)))
         img = get_image(os.path.join(folder, fname))
-        feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct, offset)
+        feat, _, _, _ = dct_feature_extract(img, tile, channel, samples,
+                                            ref_rate, threshold, div_dct, offset, ref_method)
         feats.append(feat)
 
     if return_fnames:
@@ -88,9 +100,10 @@ def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, thre
     return np.array(feats)
 
 
-def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True, offset=0):
+def extract_feature_single(fname, tile, channel=0, samples=50,ref_rate=2, threshold=20,
+                           div_dct=True, offset=0, ref_method='AR'):
     img = get_image(fname)
-    feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct, offset)
+    feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct, offset, ref_method)
     print(np.array(feat))
 
 
