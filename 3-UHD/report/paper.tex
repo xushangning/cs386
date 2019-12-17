@@ -1,4 +1,4 @@
-\documentclass[journal]{IEEEtran}
+\documentclass[journal,conference]{IEEEtran}
 
 
 % correct bad hyphenation here
@@ -31,7 +31,7 @@
   morestring=[b]"
 }
 
-
+\usepackage{multirow}
 \usepackage{multicol}
 \usepackage{lipsum}
 \usepackage{mathtools}
@@ -182,7 +182,9 @@ p(x',y') &= \sum_{i,j}{L(x_i-x)\cdot L(y_j-y)\cdot p(x_i,y_j)}
 $x_i=int(x+i)$, $y_j=int(y+j)$, $-a+1\leq i, j \leq a-1$
 
 \section{Methodology}
-In this section, we \dots
+In this section, we illustrate the concept and ideas behind our method of discriminating fake UHD images.
+We start with a naive thinking about fabrication of UHD images, and based on the idea of reference in it, we develop the concept of relative DCT analysis and the energy spectrum analysis of the RDCT.
+
 
 \subsection{A Naive Thought: Enumerative Search}
 \cref{sec:enumerative}
@@ -193,7 +195,7 @@ We can do this by first subsampling a given image, then using every know algorit
 Say the image is originally faked with algorithm A, then the reconstructed image using algorithm A should result in very small MSE wrt. to the original one.
 If after enumerated all possible algorithms and subsampling rate (also assumed limited), no algorithm satisfy the above statement, then we can assert that the image is UHD.
 
-The naive algorithm to determine the authenticity of an UHD image is however impractical, because we cannot enumerate all possible ways to fabricate false UHD images and upsampling rate.
+The naive algorithm to determine the authenticity of an UHD image is however impractical and inefficient, because we cannot enumerate all possible ways to fabricate false UHD images and upsampling rate.
 The application of DNN in UHD image generation also makes such approach infeasible due to tremendous amount of hyper-parameters to it.
 
 However, we can still refer to the idea of reconstruct a reference image by first subsampling then upsampling with some reference interpolation method.
@@ -284,7 +286,7 @@ We can interpolate it as follows:\begin{enumerate}
 
 Based on this knowledge, we step further to calculate the average relative energy spectrum in tile $(i, j)$ using \eqref{eq:energy}.
 \begin{equation}
-	E_r^{(i, j)} = \int_{u,v} \big|\mathcal{D}_r^{(i, j)}(u, v)\big|^2 dudv \Big/ \int_{u,v} dudv
+	E_{L_2}^{(i, j)} = \int_{u,v} \big|\mathcal{D}_r^{(i, j)}(u, v)\big|^2 dudv \Big/ \int_{u,v} dudv
 	\label{eq:energy}
 \end{equation}
 
@@ -293,13 +295,77 @@ It is obviously that the relative energy of the real UHD tiles is higher than th
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth]{fig/rel_energy_4k_1080.png}
+	\includegraphics[width=0.99\linewidth]{fig/rel_energy_4k_1080.png}
 	\caption{Histogram of Tile-Average Relative Energy Distribution}
 	\label{fig:ave-energy-hist}
 \end{figure}
 
+To extract the average relative energy spectrum of an image, we can either compute the average of all tile-average energy spectrum of all tiles of the image, or more efficiently, only compute those for randomly sampled tiles.
+In following experiments, we will go with the later one.
+
 This gives us a preferable criteria to discriminate real and fake UHD image using relative DCT and energy spectrum analysis.
 We will then examine other ways of constructing the reference image and calculating the energy spectrum.
+
+\section{Experiments}
+In this section, we build upon the concepts in the previous section to test different methods of discriminating fake UHD images.
+
+\subsection{A Simple Thresholding Method}
+We first extract the $L_1$ and $L_2$ relative energy spectrum of all images, with sampling rate 2 and nearest neighbor interpolation as the reference.
+The $L_1$ spectrum is defined by \eqref{eq:l1-energy}.
+\begin{equation}
+	E_{L_1}^{(i, j)} = \int_{u,v} \big|\mathcal{D}_r^{(i, j)}(u, v)\big| dudv \Big/ \int_{u,v} dudv
+	\label{eq:l1-energy}
+\end{equation}
+
+The average energy spectrums of all 200 images, with their original 4K resolution, and fabrication upsampled from 720P and 1080P with bicubic, bilinear, and lanzcos2 interpolation, are shown in Figure~\ref{fig:rel-energy-spec}.
+
+\begin{figure}[h]
+	\centering
+	\begin{minipage}{0.95\linewidth}
+		\subfigure[$L_1$ Energy Spectrum and Threshold]{
+			\includegraphics[width=\linewidth]{fig/threshold_L1.png}
+		}
+	\end{minipage}
+	\begin{minipage}{0.95\linewidth}
+		\subfigure[$L_2$ Energy Spectrum and Threshold]{
+			\includegraphics[width=\linewidth]{fig/threshold_L2.png}
+		}
+	\end{minipage}
+	\caption{Relative Energy Spectrum of all 1400 Samples}
+	\label{fig:rel-energy-spec}
+\end{figure}
+
+We can easily distinguish between the energy spectrum of real 4K images and fake ones, where the curve for real ones occupy the higher part, while that of fake ones occupy the low part.
+We calculate the threshold that divides two groups by taking the average of the minimum energy spectrum value of the real ones (sample 160.bmp) and the maximum energy spectrum value of the fake ones (sample 112.bmp (720P bilinear) in $L_1$ and sample 94.bmp (720P bilinear) in $L_2$).
+We mark two thresholds with grey lines and those critical points in Figure~\ref{fig:rel-energy-spec}.
+
+We use these thresholds as criteria to judge the authenticity of a UHD image.
+When the average relative energy is higher than the threshold, then we label it as a true UHD image.
+Otherwise, we label it as a fake UHD image.
+Table~\ref{tab:threshold-confusion-table} shows the confusion matrix of classification results for 1400 samples using $L_1$ criteria and $L_2$ criteria separately.
+Both threshold models achieve remarkable accuracy.
+
+\linespread{1.2}
+\begin{table}[h]
+	\centering
+	\caption{Classification Result with Simple Thresholding}
+	\label{tab:threshold-confusion-table}
+	\begin{tabular}{|c|c|c|c|c|c|}
+	\hline
+	\multicolumn{2}{|c|}{\multirow{2}{*}{}} & \multicolumn{2}{c|}{L1 Prediction} & \multicolumn{2}{c|}{L2 Prediction} \\ \cline{3-6} 
+	\multicolumn{2}{|c|}{}                  & Real             & Fake            & Real             & Fake            \\ \hline
+	\multirow{2}{*}{Truth}      & Real      & 199              & 1               & 199              & 1               \\ \cline{2-6} 
+								& Fake      & 1                & 1199            & 2                & 1198            \\ \hline
+	\end{tabular}
+\end{table}
+\linespread{1.0}
+
+We do realize that we are not testing the model on some hold-out set.
+But the model is too simple to cause overfitting, making the validation unnecessary.
+The quality of the threshold is desirable since it precisely splits the energy spectrums into two parts with no bias to any side.
+Notice that taking out those critical points causing the threshold would result in dramatic downfall in the performance.
+However, the critical points have already crossed the threshold and there are many other peak points centering around it, which means new data points will not have any meaningful improvements to the threshold.
+Therefore, our method should be valid.
 
 \section{Conclusion}
 The conclusion goes here.
