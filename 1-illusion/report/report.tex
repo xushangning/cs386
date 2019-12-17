@@ -75,11 +75,11 @@
 %
 
 \author{
-	Shangning~Xu,~\IEEEmembership{SJTU,}
-	Jinyu~Li,~\IEEEmembership{SJTU,}
-	Zhongye~Wang,~\IEEEmembership{SJTU,}
-	Xiaoyi~Bao,~\IEEEmembership{SJTU,}
-	and Chenxuan~Li,~\IEEEmembership{SJTU}
+  Shangning~Xu,~\IEEEmembership{SJTU,}
+  Jinyu~Li,~\IEEEmembership{SJTU,}
+  Zhongye~Wang,~\IEEEmembership{SJTU,}
+  Xiaoyi~Bao,~\IEEEmembership{SJTU,}
+  and Chenxuan~Li,~\IEEEmembership{SJTU}
 }
 
 % The paper headers
@@ -114,21 +114,28 @@ Motion Illusion, Deep Neural Network, Generative Adversary Network
 
 \section{Introduction}
 \label{sec:intro}
-\IEEEPARstart{M}{otion} illusion is one type of optical illusion where people perceive motions from some static images.
-Figure~\ref{fig:motion_example} shows some sample images with illusory motions.
-\begin{figure}[h]
-	\centering
-	\begin{minipage}{0.48\linewidth}
-		\includegraphics[width=\linewidth]{fig/illusion_eg.jpg}
-	\end{minipage}\hfill
-	\begin{minipage}{0.48\linewidth}
-		\includegraphics[width=\linewidth]{fig/illusion_eg.jpg}
-	\end{minipage}
-	\caption{Motion Illusion Examples}
-	\label[]{fig:motion_example}
+
+\IEEEPARstart{W}{hile} human visual system is reliable, ``mistakes'' are occasionally made, such as in the case of visual illusions. For example, motion illusion is one of the visual illusions in which we perceive motion that is different from that of the physical stimulus. Fig.~\ref{fig:motion_example} shows some sample images with illusory motions. In these images, the perception of motion arises from a completely static image. Despite being a still image, the rotating snake illusion induces strong perception motion in humans. Concerning this notable static stimulus, neurological and psychological studies suggest that both ocular motion and the information processing of the cerebral cortex are responsible for the perception of illusory motion \cite{HISAKATA20081940}. Research into visual illusion is key to the understanding of human visual system.
+
+Despite these deficiencies, until a few years ago, animate visual systems were the only ones known to be capable of broad-ranging visual object recognition. This has changed with the advent of deep neural networks (DNNs), which have been developed with reference to the network structures and the operational algorithms of the brain \cite{geirhos2018generalisation}. After having been trained on millions of labeled images, they sometimes even surpass human performance on tasks which only a few years ago were thought to be beyond an algorithmic solution for decades to come \cite{he2015delving, silver2016mastering}.
+
+Since DNNs and humans achieve similar accuracy, a number of studies have started investigating similarities and differences between DNNs and human vision \cite{cadieu2014deep, yamins2014performance, cichy2017dynamics}. On the one hand, the network units are an enormous simplification given the sophisticated nature and diversity of neurons in the brain .  On the other hand, often the strength of a model lies not in replicating the original system but rather in its ability to capture the important aspects while abstracting from details of the implementation \cite{kriegeskorte2015deep}.
+
+If the analogy between neural network and neural system is plausible, then DNNs in computer vision might make the same ``mistakes'' as human visual system. Moreover, since predictive coding theory has been suggested to be a theoretical mechanism to generate illusions \cite{notredame2014visual}, one might expect that PredNet would also include ``mistakes'' similar to those associated with visual illusions for human.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\linewidth]{fig/illusion_eg.jpg}
+  \includegraphics[width=0.48\linewidth]{fig/rotate-0.png}
+  \caption{Motion illusion examples. The image on the right is the ``rotating snake'' illusion.}
+  \label{fig:motion_example}
 \end{figure}
 
-Rest of the introduction \dots
+It should be noted that, despite the similarity in the network structure, humans and neural networks percept and acquire information in distinctive ways. Agents attack each problem \textit{tabula rasa}, whereas humans come in with a wealth of prior knowledge about the world, from physics to semantics to affordances. Rachit \textit{et al.} \cite{dubey2018investigating} experiments with giving human players and AI an original version and a modified version of a game, without any manual and instructions. In the modified version, the game textures are re-rendered so that objects familiar to human eyes like ladders and spikes are replaced with unfamiliar pixels. Despite the two games being structurally the same, human players took twice as long to finish the second game as the first one. In comparison, the performance of AI was approximately the same for the two games. Therefore, it is possible that due to these differences, DNNs ignore the visual illusion present in the images.
+
+It is worth considering whether indicators such as visual illusions can be reproduced in DNNs. The visual illusions that have been used to analyze the mechanism of visual processing may contribute to the study of DNNs as models of the brain. As another viewpoint, DNN technologies are now being applied in the real world. To understand the risks of DNNs, it is therefore critical to know whether DNNs would be misled by the same visual illusions as humans. The visual illusion reflects the constraints in the visual system and may be a legitimate adaptation to our living environment \cite{eagleman2001visual}; however, such misperception could constitute a fatal mistake, depending on the application of DNNs.
+
+In light of the possible relationship between DNNs and human visual system, we research into and evaluates Prednet's response to rotational illusion images. Prednet's response is characterized by the optical flow in the illusion images, and based on optical-flow vectors, we propose a detection method for motion illusion images and a potential architecture for generation of illusion images.
 
 \section{Motion Illusion Detection: Prednet \& Flownet}
 \label{sec:detection}
@@ -154,11 +161,11 @@ They then apply the optical flow analysis to the generated video to extract the 
 These vectors can be interpreted as velocity vectors of the illusory motion.
 Figure~\ref{fig:scheme} shows the scheme diagram for such reproduction strategy.
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\linewidth]{fig/pred-flow-procedure.png}
-	\caption{Prednet-Flow Scheme for Illusion Reproduction}
-	\label{fig:scheme}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig/pred-flow-procedure.png}
+  \caption{Prednet-Flow Scheme for Illusion Reproduction}
+  \label{fig:scheme}
 \end{figure}
 
 % $$
