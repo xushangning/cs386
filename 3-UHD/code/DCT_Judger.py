@@ -13,11 +13,14 @@ def dct_tile(img, i, j, tile, channel=0, rate=2, divide_ref=True, ref_int=cv2.IN
         img_tile = img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile]
     else:
         img_tile = img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile, channel]
-    img_ref = cv2.resize(down_sample(img_tile, rate), dsize=img_tile.shape, interpolation=ref_int)
-    if divide_ref:
-        tmp = cv2.dct(img_tile) / cv2.dct(img_ref)
+    if ref_int is not None:
+        img_ref = cv2.resize(down_sample(img_tile, rate), dsize=img_tile.shape, interpolation=ref_int)
+        if divide_ref:
+            tmp = cv2.dct(img_tile) / cv2.dct(img_ref)
+        else:
+            tmp = (cv2.dct(img_tile), cv2.dct(img_ref))
     else:
-        tmp = (cv2.dct(img_tile), cv2.dct(img_ref))
+        tmp = cv2.dct(img_tile)
     return tmp
 
 
@@ -42,9 +45,12 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
         'NN': cv2.INTER_NEAREST,
         'BL': cv2.INTER_LINEAR,
         'BC': cv2.INTER_CUBIC,
+        'NO': None
     }
     assert ref_method in ref_method_dict.keys(), \
         'The reference method can only be one of ' + str(ref_method_dict.keys())
+    if ref_method == 'NO':
+        offset = 0
     if len(img.shape) > 3:
         img = img[:, :, channel]
 
@@ -62,7 +68,7 @@ def dct_feature_extract(img, tile, channel=0, samples=50, ref_rate=2, threshold=
     stds = []
     for i, j in idxs:
         if div_dct:
-            dct = dct_tile(img[:, :], i, j, tile,rate=ref_rate, divide_ref=div_dct,
+            dct = dct_tile(img[:, :], i, j, tile, rate=ref_rate, divide_ref=div_dct,
                            ref_int=ref_method_dict[ref_method]).flatten() - offset
             dct = dct[abs(dct) < threshold]
             abd = abs_dev(dct)
