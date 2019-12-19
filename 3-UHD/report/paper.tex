@@ -42,11 +42,16 @@
 \usepackage{mathpartir}
 \usepackage[mathscr]{eucal}
 
-\usepackage{hyperref}
-\usepackage{cleveref}
-
 \usepackage{CJK}
 
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\usepackage{hyperref}
+\usepackage{cleveref}
 \crefformat{section}{\S#2#1#3} % see manual of cleveref, section 8.2.1
 \crefformat{subsection}{\S#2#1#3}
 \crefformat{subsubsection}{\S#2#1#3}
@@ -255,7 +260,7 @@ For some tile width $T$, we define the $(i, j)$ tile of image in \eqref{eq:tile}
 \end{equation}
 We denote the relative DCT coefficients for the tile as $\mathcal{D}_r^{(i, j)}(u, v)$.
 
-Figure~\ref{fig:rdct_hist} shows the distribution of RDCT coefficients with magnitudes less than 20 in tiles of a sample image, where we use a reference sampling rate of 2 and use the nearest neighbor as a reference interpolation.
+Figure~\ref{fig:rdct_hist} shows the distribution of RDCT coefficients with magnitudes less than 20 in tiles of a sample image, where we use a reference sampling rate of 2 and use the area average as a reference interpolation.
 
 \begin{figure}[h]
 	\centering
@@ -307,10 +312,10 @@ This gives us a preferable criteria to discriminate real and fake UHD image usin
 We will then examine other ways of constructing the reference image and calculating the energy spectrum.
 
 \section{Experiments}
-In this section, we build upon the concepts in the previous section to test different methods of discriminating fake UHD images.
+In this section, we build upon previous concepts to test different methods of discriminating fake UHD images.
 
 \subsection{A Simple Thresholding Method}
-We first extract the $L_1$ and $L_2$ relative energy spectrum of all images, with sampling rate 2 and nearest neighbor interpolation as the reference.
+We first extract the $L_1$ and $L_2$ relative energy spectrum of all images, with sampling rate 2 and area average interpolation as the reference.
 The $L_1$ spectrum is defined by \eqref{eq:l1-energy}.
 \begin{equation}
 	E_{L_1}^{(i, j)} = \int_{u,v} \big|\mathcal{D}_r^{(i, j)}(u, v)\big| dudv \Big/ \int_{u,v} dudv
@@ -336,8 +341,33 @@ The average energy spectrums of all 200 images, with their original 4K resolutio
 \end{figure}
 
 We can easily distinguish between the energy spectrum of real 4K images and fake ones, where the curve for real ones occupy the higher part, while that of fake ones occupy the low part.
-We calculate the threshold that divides two groups by taking the average of the minimum energy spectrum value of the real ones (sample 160.bmp) and the maximum energy spectrum value of the fake ones (sample 112.bmp (720P bilinear) in $L_1$ and sample 94.bmp (720P bilinear) in $L_2$).
+We calculate the threshold that divides two groups using the binary search depicted in Algorithm~\ref{alg:binary-search}.
+In this case, it is exactly the average of the minimum energy spectrum value of the real ones (sample 160.bmp) and the maximum energy spectrum value of the fake ones (sample 112.bmp (720P bilinear) in $L_1$ and sample 94.bmp (720P bilinear) in $L_2$).
 We mark two thresholds with grey lines and those critical points in Figure~\ref{fig:rel-energy-spec}.
+
+\begin{algorithm}[h]
+	\caption{Binary Search: A heuristic search for the optimal threshold minimizing total mistakes.}
+	\label{alg:binary-search}
+	\begin{algorithmic}
+		\Require The average energy spectrum of 200 true UHD images and 1200 fake UHD images.
+		\Ensure The threshold value.
+		\State $high \leftarrow \text{maximum energy spectrum in fake UHD images};$
+		\State $low \leftarrow \text{minimum energy spectrum in true UHD images};$
+		\State $best \leftarrow (low + high) / 2;$
+		\While{$low + \epsilon < high$}
+			\State Calculate the mistakes for positive and negative samples wrt. the current $mid$;
+			\If{False negative is more then false positive}
+				\State $low \leftarrow mid;$
+			\Else
+				\State $high \leftarrow mid;$
+			\EndIf
+			\If{The total mistakes for $mid$ are less than those for $best$}
+				\State $best \leftarrow mid;$
+			\EndIf
+		\EndWhile
+		\State \Return $best;$
+	\end{algorithmic}
+\end{algorithm}
 
 We use these thresholds as criteria to judge the authenticity of a UHD image.
 When the average relative energy is higher than the threshold, then we label it as a true UHD image.
@@ -366,6 +396,29 @@ The quality of the threshold is desirable since it precisely splits the energy s
 Notice that taking out those critical points causing the threshold would result in dramatic downfall in the performance.
 However, the critical points have already crossed the threshold and there are many other peak points centering around it, which means new data points will not have any meaningful improvements to the threshold.
 Therefore, our method should be valid.
+
+We also test the simple thresholding method on energy spectrum extracted using other reference interpolation and reference rate.
+Table~\ref{tab:acc-ref-param} shows the accuracy for different parameter settings of the reference images.
+
+\linespread{1.2}
+\begin{table}[h]
+	\caption{Accuracy for Different Reference Settings}
+	\label{tab:acc-ref-param}
+	\begin{tabular}{|c|c|c|c|c|c|}
+	\hline
+	\multicolumn{2}{|c|}{Parameters}                                                & \multicolumn{2}{c|}{L1 Accuracy}      & \multicolumn{2}{c|}{L2 Accuracy}      \\ \hline
+	Ref Rate           & \begin{tabular}[c]{@{}c@{}}Ref\\ Method\end{tabular}       & Positive         & Negative           & Positive         & Negative           \\ \hline
+	\multirow{4}{*}{2} & Area                                                       & \textbf{199/200} & \textbf{1199/1200} & \textbf{199/200} & 1198/1200          \\ \cline{2-6} 
+					   & NN & \textbf{199/200} & \textbf{1199/1200} & \textbf{199/200} & \textbf{1199/1200} \\ \cline{2-6} 
+					   & Bilinear                                                   & 196/200          & 1199/1200          & 191/200          & 192/200            \\ \cline{2-6} 
+					   & Bicubic                                                    & 179/200          & 1178/1200          & 168/200          & 167/200            \\ \hline
+	3                  & Area                                                       & 153/200          & 1190/1200          & 155/200          & 1188/1200          \\ \hline
+	\end{tabular}
+\end{table}
+\linespread{1.0}
+
+The simplest reference interpolations, the area average and nearest neighbors, achieves the best performance, which confirms our conjecture that the reference is the baseline for the improvements of image quality.
+% Although larger reference rate causes dramatic performance drop, but from the visual
 
 \section{Conclusion}
 The conclusion goes here.
