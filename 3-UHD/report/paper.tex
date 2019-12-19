@@ -418,7 +418,28 @@ Table~\ref{tab:acc-ref-param} shows the accuracy for different parameter setting
 \linespread{1.0}
 
 The simplest reference interpolations, the area average and nearest neighbors, achieves the best performance, which confirms our conjecture that the reference is the baseline for the improvements of image quality.
-% Although larger reference rate causes dramatic performance drop, but from the visual
+
+\subsection{Joint Feature}
+In the previous experiments, although larger reference rate causes dramatic performance drop, we know from the visualization that the gap between the energy of true UHD images and fake UHD images varies greatly on some samples.
+Some gaps emerge in other reference method are absent from the area average and nearest neighbors ones.
+Therefore, we see the possibility of combining all possible average relative energy spectrums for one image into a feature of it, and apply traditional machine learning method to obtain a model for the joint feature.
+
+We select all 5 reference methods presented in Table~\ref{tab:acc-ref-param} along with the raw DCT energy spectrum, which is 12 features in total.
+After concatenating all features together into 10-dimensional vectors, we first apply principle component analysis to have a glance at the data distribution.
+Figure~\ref{fig:pca} shows the PCA visualization, from which we are sure there exists a efficient way to separate all true and fake UHD images.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.95\linewidth]{fig/pca.png}
+	\caption{PCA Visualization of all 12 Features}
+	\label{fig:pca}
+\end{figure}
+
+We apply the support vector machine classifier with RBF kernel and train the classifier on 43 positive samples and 237 negative samples and validate it on the rest 1120 samples.
+The SVM classifier achieves 100\% accuracy on both the training set and validation set.
+
+\subsection{Test Models on DNN Generated Images}
+
 
 \section{Conclusion}
 The conclusion goes here.
