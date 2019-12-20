@@ -20,7 +20,7 @@ Please organize the project folder for 3-UHD like this:
 We provide both applications for the simple thresholding classification and SVM classification.
 
 The following command runs a simple threshold classification on a folder of images using area average reference interpolation and a reference rate of 2.
-It takes ??? seconds per image.
+It takes about 6 seconds per image.
 ```sh
 python DCT_Judger.py \
      --input_folder=image/folder \
@@ -41,13 +41,16 @@ We provide following pairs of references:
 For further information, run `python DCT_Judger.py --help` to see more optional arguments.
 
 The following command runs the SVM classifier stored in `svm_complete.model` to classify images in the given folder.
-It takes ??? seconds per image.
+It takes about 40 seconds per image.
 ```
-python SVM_app.py \
+python SVM_Judger.py \
      --input_folder=image/folder
 ```
 
 An output.csv file will be generated containing the classification results after running the above commands.
+
+To speed up the classification, you may set a smaller value for `--samples`, so that it samples less tiles.
+However, this might cause more mistakes in classification.
 
 ## Dependencies
 Our application requires Python 3.x, and following libraries are required for the core programs:
