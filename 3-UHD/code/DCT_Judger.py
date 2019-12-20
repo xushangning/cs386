@@ -1,13 +1,12 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from utils import *
-import sys
 import os
 import argparse
+import pandas as pd
 
 
-def dct_tile(img, i, j, tile, channel=0, rate=2, divide_ref=True, ref_int=cv2.INTER_AREA):
+def dct_tile(img, i, j, tile, channel=0, rate=2, divide_ref=True, ref_int=cv2.INTER_AREA, origin=None):
     img = np.float32(img)
     if len(img.shape) < 3:
         img_tile = img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile]
@@ -15,10 +14,13 @@ def dct_tile(img, i, j, tile, channel=0, rate=2, divide_ref=True, ref_int=cv2.IN
         img_tile = img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile, channel]
     if ref_int is not None:
         img_ref = cv2.resize(down_sample(img_tile, rate), dsize=img_tile.shape, interpolation=ref_int)
-        if divide_ref:
-            tmp = cv2.dct(img_tile) / cv2.dct(img_ref)
+        if origin is not None:
+            tmp = origin / cv2.dct(img_ref)
         else:
-            tmp = (cv2.dct(img_tile), cv2.dct(img_ref))
+            if divide_ref:
+                tmp = cv2.dct(img_tile) / cv2.dct(img_ref)
+            else:
+                tmp = (cv2.dct(img_tile), cv2.dct(img_ref))
     else:
         tmp = cv2.dct(img_tile)
     return tmp
@@ -106,27 +108,48 @@ def extract_feature_folder(folder, tile, channel=0, samples=50, ref_rate=2, thre
     return np.array(feats)
 
 
-def extract_feature_single(fname, tile, channel=0, samples=50,ref_rate=2, threshold=20,
-                           div_dct=True, offset=0, ref_method='AR'):
+def extract_feature_single(fname, tile, channel=0, samples=50, ref_rate=2, threshold=20,
+                           div_dct=True, offset=1, ref_method='AR'):
     img = get_image(fname)
     feat, _, _, _ = dct_feature_extract(img, tile, channel, samples, ref_rate, threshold, div_dct, offset, ref_method)
     print(np.array(feat))
 
 
-def classify_folder(folder, tile, channel=0, samples=50, ref_rate=2, threshold=20, div_dct=True,
-                    thresholds_cut=(2.1545941829681396, 3.656043997245576), method='rate2', size=None, offset=0):
-    # (2.012829899787903, 3.586151076126429)
-    assert method in ['rate2', 'rate4', 'both'], "Parameter 'method' should be one of 'rate2', 'rate4', 'both'."
-    feats, fnames = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold, div_dct,
-                                           return_fnames=True, size=size, offset=offset)
-    mask_rate2 = (feats[:, 0] > thresholds_cut[0])
-    mask_rate4 = (feats[:, 3] > thresholds_cut[1])
-    if method is 'rate2':
-        return mask_rate2
-    elif method is 'rate4':
-        return mask_rate4
-    elif method is 'both':
-        return mask_rate4 & mask_rate2
+def classify_folder(folder, output_file, tile, channel=0, samples=50, ref_rate=2, ref_method='AR', threshold=20,
+                    method='L1', size=None, offset=1):
+    assert method in ['L1', 'L2', 'both'], "Parameter 'method' should be one of 'L1', 'L2', 'both'."
+    thresholds_dict = {
+        2:{
+            'AR': (2.1545941829681396, 3.656043997245576),
+            'NN': (2.1711327396333218, 3.666123659446196),
+            'BL': (4.140497922897339, 6.317052318760898),
+            'BC': (4.093102689832449, 6.328407565850434),
+        },
+        3:{
+            'AR': (3.1917893290519714, 5.072529512846611),
+        }
+    }
+    if ref_rate not in thresholds_dict.keys() or ref_method not in thresholds_dict[ref_rate].keys():
+        print('Sorry! We do not support ref_rate={}, ref_method={}'.format(ref_rate, ref_method))
+        return
+
+    feats, fnames = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold,
+                                           return_fnames=True, size=size, offset=offset, ref_method=ref_method)
+
+    thresholds_cut = thresholds_dict[ref_rate][ref_method]
+    mask_L1 = (feats[:, 0] > thresholds_cut[0])
+    mask_L2 = (feats[:, 3] > thresholds_cut[1])
+    if method == 'L1':
+        res = mask_L1
+    elif method == 'L2':
+        res = mask_L2
+    elif method == 'both':
+        res = mask_L1 & mask_L2
+
+    if 'csv' in output_file:
+        pd.DataFrame({'fname': fnames, 'label': res}).to_csv(output_file, index=False)
+    else:
+        np.savetxt(output_file, res)
 
 
 def bool_string(input_string):
@@ -139,12 +162,19 @@ def bool_string(input_string):
 def parse_args():
     """ Parse command line arguments.
     """
-    parser = argparse.ArgumentParser(description="DCT Judger")
+    parser = argparse.ArgumentParser(description="Simple Thresholding Classifier")
     parser.add_argument("--input_folder", help="Input image folder.", type=str)
     parser.add_argument(
         "--output_filename", help="The output txt file of classification results.",
-        default="output.txt", type=str
+        default="output.csv", type=str
     )
+    parser.add_argument(
+        "--max_image", help="Divide reference before statistics.",
+        default=None, type=int)
+    parser.add_argument(
+        "--mask_method", help="The classification thresholds to use."
+                              "Can only be one of 'L1', 'L2', 'both'.",
+        default='L1', type=str)
     parser.add_argument(
         "--tile", help="Size of tile.",
         default=32, type=int)
@@ -158,85 +188,17 @@ def parse_args():
         "--ref_rate", help="Reference down sampling rate.",
         default=2, type=int)
     parser.add_argument(
+        "--ref_method", help="The reference interpolation to use."
+                              "Can only be one of 'AR', 'NN', 'BL', 'BC'.",
+        default='AR', type=str)
+    parser.add_argument(
         "--threshold", help="Threshold on the relative DCT value. "
                             "Effective only when div_dct is True.",
         default=20, type=int)
-    parser.add_argument(
-        "--div_ref", help="Divide reference before statistics.",
-        default=True, type=bool_string)
-    parser.add_argument(
-        "--max_image", help="Divide reference before statistics.",
-        default=None, type=int)
-    parser.add_argument(
-        "--offset", help="Shift the relative DCT value to left by 'offset'.",
-        default=0, type=float)
     return parser.parse_args()
 
 
-# def tile_dct(img, i, j, tile, channel=0):
-#     if len(img.shape) < 3:
-#         return cv2.dct(np.float32(img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile]))
-#     elif len(img.shape) < 4:
-#         if img.shape[2] <= 3:
-#             return cv2.dct(np.float32(img[i * tile:(i + 1) * tile, j * tile:(j + 1) * tile, channel]))
-#         else:
-#             return cv2.dct(np.float32(img[:, i * tile:(i + 1) * tile, j * tile:(j + 1) * tile]))
-#     else:
-#         return cv2.dct(np.float32(img[:, i * tile:(i + 1) * tile, j * tile:(j + 1) * tile, channel]))
-#
-#
-# def dct_hist_union(img, tile, channel=0):
-#     nx = img.shape[0] // tile
-#     ny = img.shape[1] // tile
-#     dcts = np.array([])
-#     for i in range(nx):
-#         for j in range(ny):
-#             dcts = np.concatenate([dcts, tile_dct(img, i, j, tile, channel).flatten()])
-#     hst = plt.hist(dcts)[0]
-
 if __name__ == '__main__':
     args = parse_args()
-    res = classify_folder(args.input_folder, args.tile, args.channel, args.samples,
-                          args.ref_rate, args.threshold, args.div_ref, size=args.max_image,
-						  offset=args.offset)
-    np.savetxt(args.output_filename, res)
-
-    # extract_feature_single('images/1080P/bicubic/32.bmp', tile=32, channel=0, samples=50,
-    #                        ref_rate=2, threshold=20, div_dct=True)
-
-    # if len(sys.argv) < 2:
-    #     print("Please specify the image folder.")
-    #     exit(-1)
-    # folder = sys.argv[1]
-    # tile = 32
-    # channel = 0
-    # samples = 50
-    # ref_rate = 2
-    # threshold = 20
-    # div_dct = True
-    # if len(sys.argv) > 2:
-    #     tile = int(sys.argv[2])
-    # if len(sys.argv) > 3:
-    #     channel = int(sys.argv[3])
-    # if len(sys.argv) > 4:
-    #     samples = int(sys.argv[4])
-    # if len(sys.argv) > 5:
-    #     ref_rate = int(sys.argv[5])
-    # if len(sys.argv) > 6:
-    #     threshold = int(sys.argv[6])
-    # if len(sys.argv) > 7:
-    #     div_dct = bool(sys.argv[7])
-    #
-    # feats = extract_feature_folder(folder, tile, channel, samples, ref_rate, threshold, div_dct)
-    # np.savetxt(folder + "tile_{}_channel_{}_samples_{}_rate_{}_threshold_{}_div_{}.txt".format(tile, channel, samples,
-    #                                                                                            ref_rate, threshold,
-    #                                                                                            div_dct), feats)
-
-    # plt.figure()
-    # img_4k = get_image("./images/4k/1.bmp")
-    # dct_hist_union(img_4k, 32)
-    # plt.figure()
-    # img_18bc = get_image("./images/1080P/bicubic/1.bmp")
-    # dct_hist_union(img_18bc, 32)
-    # plt.show()
-    pass
+    classify_folder(args.input_folder, args.output_filename, args.tile, args.channel, args.samples,
+                    args.ref_rate, args.ref_method, args.threshold, size=args.max_image, method=args.mask_method)

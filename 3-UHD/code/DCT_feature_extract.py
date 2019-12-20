@@ -1,6 +1,6 @@
 import argparse
 import os
-from DCT_Judger import *
+from DCT_Judger import extract_feature_folder
 
 
 def parse_args():

@@ -36,6 +36,8 @@
 \usepackage{lipsum}
 \usepackage{mathtools}
 \usepackage{cuted}
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
 
 \usepackage{amsmath}
 \usepackage{extpfeil}
@@ -418,13 +420,71 @@ Table~\ref{tab:acc-ref-param} shows the accuracy for different parameter setting
 \linespread{1.0}
 
 The simplest reference interpolations, the area average and nearest neighbors, achieves the best performance, which confirms our conjecture that the reference is the baseline for the improvements of image quality.
-% Although larger reference rate causes dramatic performance drop, but from the visual
+
+\subsection{Joint Feature and SVM}
+In the previous experiments, although larger reference rate causes dramatic performance drop, we know from the visualization that the gap between the energy of true UHD images and fake UHD images varies greatly on some samples.
+Some gaps emerge in other reference method are absent from the area average and nearest neighbors ones.
+Therefore, we see the possibility of combining all possible average relative energy spectrums for one image into a feature of it, and apply traditional machine learning method to obtain a model for the joint feature.
+
+We select all 5 reference methods presented in Table~\ref{tab:acc-ref-param} along with the raw DCT energy spectrum, which is 12 features in total.
+After concatenating all features together into 10-dimensional vectors, we first apply principle component analysis to have a glance at the data distribution.
+Figure~\ref{fig:pca} shows the PCA visualization, from which we are sure there exists a efficient way to separate all true and fake UHD images.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.95\linewidth]{fig/pca.png}
+	\caption{PCA Visualization of all 12 Features}
+	\label{fig:pca}
+\end{figure}
+
+We apply the support vector machine classifier with RBF kernel and train the classifier on 43 positive samples and 237 negative samples and validate it on the rest 1120 samples.
+The SVM classifier achieves 100\% accuracy on both the training set and validation set.
+
+\subsection{Test Models on DNN Generated Images}
+We have previously ignored the fake UHD images generated with DNNs like SRCNN and EDSR, and now we use them to test and improve the models we have proposed.
+
+We first observe that the simple thresholding methods with area average reference and nearest neighbor reference still work for the fake UHD images generated with EDSR, while they fail dramatically for those generated with SRCNN.
+The performance for SVM using the joint feature also drops greatly encountering DNN generated images.
+Table~\ref{tab:acc-test} shows the accuracies for those methods.
+
+\linespread{1.2}
+\begin{table}[h]
+	\caption{Accuracy for Different Methods on DNN Generated Test Set}
+	\label{tab:acc-test}
+	\begin{tabular}{|c|c|c|c|c|c|c|}
+		\hline
+		 & \multicolumn{4}{c|}{Simple Thresholding} & \multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Joint\\ Feature\\ SVM\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Partially\\ Retrained\\ SVM\end{tabular}} \\ \cline{1-5}
+		\begin{tabular}[c]{@{}c@{}}DNN Type\\ \& Defintion\end{tabular} & AR L1 & AR L2 & NN L1 & NN L2 &  &  \\ \hline
+		SRCNN 1080P & 68\% & 55\% & \textbf{68.5\%} & 53.5\% & 46\% & {\ul \textbf{97\%}} \\ \hline
+		SRCNN 720P & 62.5\% & \textbf{63.5\%} & 60\% & 62.5\% & 37.5\% & {\ul \textbf{93.5\%}} \\ \hline
+		EDSR 1080P & {\ul \textbf{100\%}} & {\ul \textbf{100\%}} & {\ul \textbf{100\%}} & {\ul \textbf{100\%}} & 94.5\% & {\ul \textbf{100\%}} \\ \hline
+		EDSR 720P & 95.5\% & \textbf{96.5\%} & \textbf{96.5\%} & 96\% & 93.5\% & {\ul \textbf{100\%}} \\ \hline
+	\end{tabular}
+\end{table}
+\linespread{1.0}
+
+This clearly shows the advantage of SRCNN over EDSR wrt. the ability to simulate real UHD images.
+We add the DNN generated samples onto the previous PCA visualization in Figure~\ref{fig:pca-dnn}.
+We can see that the DNN samples fills in exactly the gap between the interpolation generated samples and true UHD images, which causes the drop of the performance for various methods.
+However, this means we can also improve the performance at least for SVM by including some DNN generated samples into the training set, because the separation between true UHD samples and fake ones is still clear.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.95\linewidth]{fig/pca_dnn.png}
+	\caption{PCA Visualization with DNN Fake Samples}
+	\label{fig:pca-dnn}
+\end{figure}
+
+We combine the DNN generated samples with interpolated ones, and train a SVM model on 10\% of those samples with 97.7\% accuracy on the 10\% training set and 96.6\% accuracy on the 90\% training set.
+The accuracy of this partially trained model for different DNN fake images classification is shown in the last column of Table~\ref{tab:acc-test}.
+
 
 \section{Conclusion}
-The conclusion goes here.
+In this project, we explore the potential for DCT analysis on classifying true UHD images and fabricated ones by proposing the concept of reference and relative DCT analysis.
+We analyze the sampled energy spectrums of the relative DCT coefficients of a images and apply a simple thresholding method and SVM to perform the binary classification task.
+The simple thresholding requires very computation of features while the SVM provides stable performance even on DNN generated samples.
 
-
-
+In our application, we offer a simple thresholding model with area average reference and a SVM model trained on homebrew fake UHD images using both interpolation and DNN generation.
 
 
 
