@@ -2,7 +2,6 @@ import os
 import argparse
 
 
-
 def complete_feature_extract(img, tile, channel=0, samples=50, threshold=20):
     if len(img.shape) > 3:
         img = img[:, :, channel]

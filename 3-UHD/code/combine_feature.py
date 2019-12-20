@@ -1,6 +1,7 @@
 import numpy as np
 import os
 
+
 def load_features(fname, mode='train'):
     data = {}
     if mode in ['train', 'all']:
@@ -51,7 +52,6 @@ def concate_features(fname_list, prefix='all', mode='train'):
         np.savetxt('images/' + prefix + '_true.txt', data['4k'])
     np.savetxt('images/' + prefix + '_false.txt', false_data)
     # print(false_data)
-
 
 
 if __name__ == "__main__":

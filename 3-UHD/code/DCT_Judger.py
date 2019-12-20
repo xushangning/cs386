@@ -166,7 +166,7 @@ def parse_args():
     parser.add_argument("--input_folder", help="Input image folder.", type=str)
     parser.add_argument(
         "--output_filename", help="The output txt file of classification results.",
-        default="output.txt", type=str
+        default="output.csv", type=str
     )
     parser.add_argument(
         "--max_image", help="Divide reference before statistics.",
