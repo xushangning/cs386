@@ -328,9 +328,13 @@
   \section{Conclusion}
   \label{sec:conclusion}
   
+  Applying deep neural networks to detect and generate rotation illusions has been of interest to more researchers. On the one hand, it provides us with a tool to better understand the nature of human vision systems. On the other hand, the procedure may exhibit special features of our neutral network, so that we may improve the network in the future.
+
+  In this paper, we focus on rotating illusions specifically, where a majority of people will view these pictures as rotating despite their static nature. A DNN model for future frame prediction, PredNet, is adopted to generate future frames, given several identical illusion pictures as input. After that, Flownet, composed of several convolutional neural networks, is used to detect flow in the output. The flows are further manipulated to decide the strength of rotation. We also discuss the pros and cons of different methodology, and propose to use asymmetric GAN to generate rotating illusory pictures. 
   
-  The conclusion of the paper \dots
+  In the experiments, we construct a rotate group and a control group from an optical illusion image dataset. With log magnitude histogram, we display certain feature of optical-flow field computed by Flownet. In our observations, Neural networks can capture the motion in illusion images as the distribution of log of magnitudes is significantly different in the rotate group and control group. However, Prednet fails to recognize the direction of illusionary motion, and some illusion images with directed motion may also be mistakenly classified as rotational ones. We illustrate that Prednet seems to be highly dependent on the training dataset, and its performance also differ on various pictures.
   
+  There are still some work to be done to understand the performance of neural network in illusion detection and generation. Some knowledge about the nature of human vision system and neural network may assist in future work. Moreover, more sophisticated tools may be used to refined our model, especially in the manipulation of flow vectors. In the future, we will also try to accomplish the proposed GAN to generate models, although how we can make use of prior knowlege requires deeper consideration.
   
   
   \bibliographystyle{IEEEtran}
