@@ -266,8 +266,10 @@
     \label{fig:histogram-of-magnitudes}
   \end{figure}
   
-  \paragraph{Prednet fails to recognize the direction of illusionary motion} Even though Prednet can ``see'' the illusion in the image, it misses the rotation direction in the illusion images, as evident in the last image of the second column of Fig.~\ref{fig:representative-img-and-results}. Some illusion images have directed rather than rotational motion. These images may be mistakenly classified as images with rotational illusion.
+  \paragraph{Prednet fails to recognize the direction of illusionary motion} Even though Prednet can ``see'' the illusion in the image, it misses the rotation direction in the illusion images, as evident in the last image of the second column of Fig.~\ref{fig:representative-img-and-results}.
   
+  Due to incorrectly-predicted directions, our proposed methods for detecting rotation couldn't distinguish rotation and translation. Some illusion images have directed rather than rotational motion. These images may be mistakenly classified as images with rotational illusion. The implementation of motion illusion creation is left as future work, as Flownet couldn't detect small displacements.
+
   \paragraph{Prednet's prediction seems to be highly dependent on the training dataset} In Watanabe \textit{et al.}'s experiment, Prednet, when trained on videos from the First-Person Social Interactions Dataset \cite{fathi2012social}, predicts significant and visible rotation for the upper-left image in Fig~.\ref{fig:representative-img-and-results}. But their experiment is limited to one single image and due to hardware limitation, we are unable to verify our hypothesis.
   
   \begin{figure*}
