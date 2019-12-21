@@ -242,13 +242,7 @@
   
   \subsection{Dataset}
   
-  Existing collections of illusion images feature variety rather than volume or machine readability, because these images are typically shared on social networks, displayed on websites and consumed by human beings. Robert and Roman's optical illusion image dataset \cite{williams2018optical} could be the first dataset about optical illusion published for research but lacks in organization. In light of these limitations,
-  
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Describe how we collect the images: where are the images from and criteria
-  We construct a rotate group and a control group for our dataset. The rotate group images are those with rotating illusion manually selected from the above Robert dataset. The control group consists of images selected from a stock image website \emph{shutterstock}. We select the control group based on the principle that they have similar simple texture and symmetric pattern to those in rotate group and that they have no illusion.
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Existing collections of illusion images feature variety rather than volume or machine readability, because these images are typically shared on social networks, displayed on websites and consumed by human beings. Robert and Roman's optical illusion image dataset \cite{williams2018optical} could be the first dataset about optical illusion published for research but lacks in organization. In light of these limitations, we construct a rotate group and a control group for our dataset. The rotate group images are those with rotating illusion manually selected from the above Robert dataset. The control group consists of images selected from a stock image website \emph{shutterstock}. We select the control group based on the principle that they have similar simple texture and symmetric pattern to those in rotate group and that they have no illusion.
   
   \subsection{Results}
   
@@ -274,8 +268,7 @@
   
   \paragraph{Prednet fails to recognize the direction of illusionary motion} Even though Prednet can ``see'' the illusion in the image, it misses the rotation direction in the illusion images, as evident in the last image of the second column of Fig.~\ref{fig:representative-img-and-results}. Some illusion images have directed rather than rotational motion. These images may be mistakenly classified as images with rotational illusion.
   
-  \paragraph{Prednet's prediction seems to be highly dependent on the training dataset} In Watanabe \textit{et al.}'s experiment, Prednet, when trained on videos from the First-Person
-  Social Interactions Dataset \cite{fathi2012social}, predicts significant and visible rotation for the upper-left image in Fig~.\ref{fig:representative-img-and-results}. But their experiment is limited to one single image and due to hardware limitation, we are unable to verify our hypothesis.
+  \paragraph{Prednet's prediction seems to be highly dependent on the training dataset} In Watanabe \textit{et al.}'s experiment, Prednet, when trained on videos from the First-Person Social Interactions Dataset \cite{fathi2012social}, predicts significant and visible rotation for the upper-left image in Fig~.\ref{fig:representative-img-and-results}. But their experiment is limited to one single image and due to hardware limitation, we are unable to verify our hypothesis.
   
   \begin{figure*}
     \centering
