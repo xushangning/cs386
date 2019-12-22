@@ -66,7 +66,7 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Bare Demo of IEEEtran.cls for Journals}
+\title{Distinguish Real and Fake UHD Images with Relative Discrete Cosine Transform (RDCT)}
 %
 %
 % author names and IEEE memberships
@@ -113,7 +113,7 @@ The final SVM classifier achieves an accuracy rate higher than 95\% on the test 
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-IEEEtran, journal, \LaTeX, paper, template.
+Ultra-High Definition, discrete cosine analysis, support vector machine
 \end{IEEEkeywords}
 
 
@@ -124,7 +124,6 @@ IEEEtran, journal, \LaTeX, paper, template.
 \section{Introduction}
 \IEEEPARstart{T}{his}
 
-\section{Related Work}
 % lcx
 \section{Fake Image Generation}
 
@@ -136,7 +135,7 @@ We first construct 1080P and 720P images using downsampling according to pixel a
 i,j are nonnegative integers, $i \in [scale\_x\times x,scale\_x\times (x+1)]$ $j \in [scale\_y\times y,scale\_y\times (y+1)]$
 
 \subsection{Interpolation}
-The next step to construct fake images is to upsample those downsampled images back to 4K defintion.
+The next step to construct fake images is to upsample those downsampled images back to 4K Definition.
 In the mathematical field of numerical analysis, interpolation is a type of estimation, a method of constructing new data points within the range of a discrete set of known data points.
 In this project we use bilinear interpolation, bicubic interpolation, Lanczos interpolation to generate fake images.
 
@@ -460,7 +459,7 @@ Table~\ref{tab:acc-test} shows the accuracies for those methods.
 	\begin{tabular}{|c|c|c|c|c|c|c|}
 		\hline
 		 & \multicolumn{4}{c|}{Simple Thresholding} & \multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Joint\\ Feature\\ SVM\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Partially\\ Retrained\\ SVM\end{tabular}} \\ \cline{1-5}
-		\begin{tabular}[c]{@{}c@{}}DNN Type\\ \& Defintion\end{tabular} & AR L1 & AR L2 & NN L1 & NN L2 &  &  \\ \hline
+		\begin{tabular}[c]{@{}c@{}}DNN Type\\ \& Definition\end{tabular} & AR L1 & AR L2 & NN L1 & NN L2 &  &  \\ \hline
 		SRCNN 1080P & 68\% & 55\% & \textbf{68.5\%} & 53.5\% & 46\% & {\ul \textbf{97\%}} \\ \hline
 		SRCNN 720P & 62.5\% & \textbf{63.5\%} & 60\% & 62.5\% & 37.5\% & {\ul \textbf{93.5\%}} \\ \hline
 		EDSR 1080P & {\ul \textbf{100\%}} & {\ul \textbf{100\%}} & {\ul \textbf{100\%}} & {\ul \textbf{100\%}} & 94.5\% & {\ul \textbf{100\%}} \\ \hline
@@ -484,6 +483,11 @@ However, this means we can also improve the performance at least for SVM by incl
 We combine the DNN generated samples with interpolated ones, and train a SVM model on 10\% of those samples with 97.7\% accuracy on the 10\% training set and 96.6\% accuracy on the 90\% training set.
 The accuracy of this partially trained model for different DNN fake images classification is shown in the last column of Table~\ref{tab:acc-test}.
 
+\section{Related Work}
+There have not been many research into the task of classifying real and fake UHD images.
+Zhu \textit{et al.} \cite{zhu2016distinguish} also approach the problem using frequency domain analysis.
+They perform more complex analysis on the energy spectrum of images and give an efficient algorithm to classify real and fake UHD images.
+In comparison, our method is more naive but also achieves comparable results.
 
 \section{Conclusion}
 In this project, we explore the potential for DCT analysis on classifying true UHD images and fabricated ones by proposing the concept of reference and relative DCT analysis.
