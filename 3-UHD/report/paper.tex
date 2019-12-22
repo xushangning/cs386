@@ -80,10 +80,10 @@
 
 \author{
 	Zhongye~Wang,~\IEEEmembership{SJTU,}
-	Jingyu~Li,~\IEEEmembership{SJTU,}
+	Chenxuan~Li,~\IEEEmembership{SJTU}
 	Xiaoyi~Bao,~\IEEEmembership{SJTU,}
-	Shangning~Xu,~\IEEEmembership{SJTU,}
-	and Chenxuan~Li,~\IEEEmembership{SJTU}
+	Jingyu~Li,~\IEEEmembership{SJTU,}
+	and Shangning~Xu,~\IEEEmembership{SJTU,}
 }
 
 % The paper headers
@@ -104,7 +104,11 @@
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-The abstract goes here.
+In this project, we tackle the problem of distinguishing fake UHD images from real UHD images with 4K resolution.
+We extend the basic DCT analysis to the relative DCT (RDCT) analysis by considering the DCT coefficients of the reference images, i.e., the fake UHD image constructed for the given image, which could be fake itself.
+This allows us to eliminate the influence of the context in the image to the DCT coefficients' distribution to certain degree.
+We consider different reference methods and use a simple thresholding classifier and a SVM classifier on the joint feature to perform the classification.
+The final SVM classifier achieves an accuracy rate higher than 95\% on the test set.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
