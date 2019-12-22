@@ -122,24 +122,21 @@ IEEEtran, journal, \LaTeX, paper, template.
 
 \section{Related Work}
 % lcx
-\section{Subsampling and Interpolation}
+\section{Fake Image Generation}
 
-\subsection{Subsampling}
-Resampling using pixel area relation. Suppose $x\times y$ image subsampled down to size $x'\times y'$. scale\_x = x/x', scale\_y = y/y', and then we get block $scale\_x \times scale\_y$, block\_area = $scale\_x \times scale\_y$, the new image's each pixel is the weighted average of pixels in corresponding block's of the original image: 
+\subsection{Downsampling}
+We first construct 1080P and 720P images using downsampling according to pixel area relation. Suppose $x\times y$ image downsampled down to size $x'\times y'$. scale\_x = x/x', scale\_y = y/y', and then we get block $scale\_x \times scale\_y$, block\_area = $scale\_x \times scale\_y$, the new image's each pixel is the weighted average of pixels in corresponding block's of the original image: 
 \begin{align*}
 	p'(x',y')=\sum_{i,j}{\frac{covered\_area \cdot p(i,j)}{block\_area}}
 \end{align*}
 i,j are nonnegative integers, $i \in [scale\_x\times x,scale\_x\times (x+1)]$ $j \in [scale\_y\times y,scale\_y\times (y+1)]$
 
 \subsection{Interpolation}
-In the mathematical field of numerical analysis, interpolation is a type of estimation, a method of constructing new data points within the range of a discrete set of known data points. In this project we use bilinear interpolation, bicubic interpolation, Lanczos resampling.
+The next step to construct fake images is to upsample those downsampled images back to 4K defintion.
+In the mathematical field of numerical analysis, interpolation is a type of estimation, a method of constructing new data points within the range of a discrete set of known data points.
+In this project we use bilinear interpolation, bicubic interpolation, Lanczos interpolation to generate fake images.
 
 \subsubsection{Bilinear Interpolation}
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.6\linewidth]{fig/1.png}
-	\label{fig:Bilinear Interpolation}
-\end{figure}
 \par First do linear interpolation in the x-direction:
 \begin{align*}
 p(R_1) = \frac{x_2-x}{x_2-x_1}\cdot p(Q_{11})+\frac{x-x_1}{x_2-x_1}\cdot p(Q_{21})\\
@@ -147,7 +144,8 @@ p(R_2) = \frac{x_2-x}{x_2-x_1}\cdot p(Q_{12})+\frac{x-x_1}{x_2-x_1}\cdot p(Q_{22
 \end{align*}
 Then interpolate in the y-direction:
 \begin{align*}
-p(P) &= \frac{y2-y}{y2-y1}\cdot p(R_1)+\frac{y-y1}{y2-y1}\cdot p(R_2)\\ &=\small{\frac {1}{(x_{2}-x_{1})(y_{2}-y_{1})}}{\begin{bmatrix}x_{2}-x&x-x_{1}\end{bmatrix}}{\begin{bmatrix}f(Q_{11})&f(Q_{12})\\f(Q_{21})&f(Q_{22})\end{bmatrix}}{\begin{bmatrix}y_{2}-y\\y-y_{1}\end{bmatrix}}
+p(P) &= \frac{y2-y}{y2-y1}\cdot p(R_1)+\frac{y-y1}{y2-y1}\cdot p(R_2)\\ &=\small{\frac {1}{(x_{2}-x_{1})(y_{2}-y_{1})}} F {\begin{bmatrix}y_{2}-y\\y-y_{1}\end{bmatrix}} \\
+& \text{where } F = {\begin{bmatrix}x_{2}-x&x-x_{1}\end{bmatrix}}{\begin{bmatrix}f(Q_{11})&f(Q_{12})\\f(Q_{21})&f(Q_{22})\end{bmatrix}}
 \end{align*}
 \par We can get the corresponding pixel's coordinate in original image: $x'\cdot scale\_x=x$, $y'\cdot scale\_y=y$. If either x or y is not integer, $x_1=int(x),x_2=int(x)+1,y_1=int(y), y_2=int(y)+1$, do interpolation.
 \par This algorithm reduces some of the visual distortion caused by resizing an image to a non-integral zoom factor.
@@ -188,6 +186,10 @@ p(x',y') &= \sum_{i,j}{L(x_i-x)\cdot L(y_j-y)\cdot p(x_i,y_j)}
 \end{align*}
 $x_i=int(x+i)$, $y_j=int(y+j)$, $-a+1\leq i, j \leq a-1$
 
+Now we have 6 different categories of 1200 fake UHD images versus 200 real UHD images.
+Notice that we have not used DNN models for generating fake UHD images, which will be later used to examine our models.
+We then start developing models to distinguish real ones from fake ones.
+
 \section{Methodology}
 In this section, we illustrate the concept and ideas behind our method of discriminating fake UHD images.
 We start with a naive thinking about fabrication of UHD images, and based on the idea of reference in it, we develop the concept of relative DCT analysis and the energy spectrum analysis of the RDCT.
@@ -198,14 +200,14 @@ We start with a naive thinking about fabrication of UHD images, and based on the
 We first try to tackle the problem with a very naive approach.
 If we know all possible ways to generate false UHD images, assuming the number of them is limited, we can actually enumerate through all of them to determine which algorithm is applied in any given false UHD image.
 
-We can do this by first subsampling a given image, then using every know algorithm to upsampling the downsampled image back to the original size.
+We can do this by first downsampling a given image, then using every know algorithm to upsampling the downsampled image back to the original size.
 Say the image is originally faked with algorithm A, then the reconstructed image using algorithm A should result in very small MSE wrt. to the original one.
-If after enumerated all possible algorithms and subsampling rate (also assumed limited), no algorithm satisfy the above statement, then we can assert that the image is UHD.
+If after enumerated all possible algorithms and downsampling rate (also assumed limited), no algorithm satisfy the above statement, then we can assert that the image is UHD.
 
 The naive algorithm to determine the authenticity of an UHD image is however impractical and inefficient, because we cannot enumerate all possible ways to fabricate false UHD images and upsampling rate.
 The application of DNN in UHD image generation also makes such approach infeasible due to tremendous amount of hyper-parameters to it.
 
-However, we can still refer to the idea of reconstruct a reference image by first subsampling then upsampling with some reference interpolation method.
+However, we can still refer to the idea of reconstruct a reference image by first downsampling then upsampling with some reference interpolation method.
 If we use the most trivial interpolation method to generate the reference, for any given image, the more it improves from the reference, we are more confident that it is true UHD.
 This idea gives birth to the relative DCT analysis we propose later.
 
@@ -216,7 +218,7 @@ Therefore, if we use functions to fit pixel values in different regions, there s
 On the other hand, because it is often a common practice to use a single interpolation function to do upsampling to get fake UHD images, the functions in different regions should share certain similarities.
 Some interpolation methods (like bicubic) would even result in same family of those functions.
 
-Another idea is that, there are always noises in real UHD images due to the inherent deficiencies in equipments, whereas the fake UHD images undergoes a stage of subsampling, which eliminates some noises.
+Another idea is that, there are always noises in real UHD images due to the inherent deficiencies in equipments, whereas the fake UHD images undergoes a stage of downsampling, which eliminates some noises.
 As a result, the fake UHD image should be more smooth than the original one.
 We can use DCT to extract the magnitudes at different frequencies, and observe those for high frequencies is relatively lower in fake UHD images.
 
