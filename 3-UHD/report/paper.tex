@@ -155,14 +155,15 @@ p(R_2) = \frac{x_2-x}{x_2-x_1}\cdot p(Q_{12})+\frac{x-x_1}{x_2-x_1}\cdot p(Q_{22
 Then interpolate in the y-direction:
 \begin{align*}
 p(P) &= \frac{y2-y}{y2-y1}\cdot p(R_1)+\frac{y-y1}{y2-y1}\cdot p(R_2)\\ &=\small{\frac {1}{(x_{2}-x_{1})(y_{2}-y_{1})}} F {\begin{bmatrix}y_{2}-y\\y-y_{1}\end{bmatrix}} \\
-& \text{where } F = {\begin{bmatrix}x_{2}-x&x-x_{1}\end{bmatrix}}{\begin{bmatrix}f(Q_{11})&f(Q_{12})\\f(Q_{21})&f(Q_{22})\end{bmatrix}}
+\end{align*}
+\begin{align*}
+\text{where } F = {\begin{bmatrix}x_{2}-x&x-x_{1}\end{bmatrix}}{\begin{bmatrix}f(Q_{11})&f(Q_{12})\\f(Q_{21})&f(Q_{22})\end{bmatrix}}
 \end{align*}
 \par We can get the corresponding pixel's coordinate in original image: $x'\cdot scale\_x=x$, $y'\cdot scale\_y=y$. If either x or y is not integer, $x_1=int(x),x_2=int(x)+1,y_1=int(y), y_2=int(y)+1$, do interpolation.
 \par This algorithm reduces some of the visual distortion caused by resizing an image to a non-integral zoom factor.
-~\\
+
 \subsubsection{Bicubic Interpolation}
-~\\
-\par In this method, new image’s pixel at point (x', y'), p(x',y'), is the weighted average of the nearest 16 points in the original image. An interpolator can be obtained by applying a convolution with the following kernel in both dimensions:
+In this method, new image’s pixel at point (x', y'), p(x',y'), is the weighted average of the nearest 16 points in the original image. An interpolator can be obtained by applying a convolution with the following kernel in both dimensions:
 \begin{align*}
 {\displaystyle W(x)={\begin{cases}(a+2)|x|^{3}-(a+3)|x|^{2}+1&{\text{for }}|x|\leq 1,\\a|x|^{3}-5a|x|^{2}+8a|x|-4a&{\text{for }}1<|x|<2,\\0&{\text{otherwise}},\end{cases}}}
 \end{align*}
@@ -177,15 +178,15 @@ then do interpolation in the y-direction:
 \begin{align*}
 p(x',y')=\sum_{j}{W(y-y_j)\cdot p(x',y_j)} 
 \end{align*}
-\par Images resampled with bicubic interpolation are smoother and have fewer interpolation artifacts.
-~\\
+
+Images resampled with bicubic interpolation are smoother and have fewer interpolation artifacts.
+
 \subsubsection{Lanczos Resampling}
-~\\
-\par The effect of each input sample on the interpolated values is defined by the filter's reconstruction kernel L(x), called the Lanczos kernel. 
-\begin{align*}
-{\displaystyle L(x)={\begin{cases}\operatorname {sinc} (x)\,\operatorname {sinc} (x/a)&{\text{if}}\ -a<x<a,\\0&{\text{otherwise}}.\end{cases}}}
-\end{align*}
-Equivalently,
+The effect of each input sample on the interpolated values is defined by the filter's reconstruction kernel L(x), called the Lanczos kernel. 
+% \begin{align*}
+% {\displaystyle L(x)={\begin{cases}\operatorname {sinc} (x)\,\operatorname {sinc} (x/a)&{\text{if}}\ -a<x<a,\\0&{\text{otherwise}}.\end{cases}}}
+% \end{align*}
+% Equivalently,
 \begin{align*}
 {\displaystyle L(x)={\begin{cases}1&{\text{if}}\ x=0,\\{\dfrac {a\sin(\pi x)\sin(\pi x/a)}{\pi ^{2}x^{2}}}&{\text{if}}\ -a\leq x<a\ {\text{and}}\ x\neq 0,\\0&{\text{otherwise}}.\end{cases}}}
 \end{align*}
@@ -383,12 +384,6 @@ We mark two thresholds with grey lines and those critical points in Figure~\ref{
 	\end{algorithmic}
 \end{algorithm}
 
-We use these thresholds as criteria to judge the authenticity of a UHD image.
-When the average relative energy is higher than the threshold, then we label it as a true UHD image.
-Otherwise, we label it as a fake UHD image.
-Table~\ref{tab:threshold-confusion-table} shows the confusion matrix of classification results for 1400 samples using $L_1$ criteria and $L_2$ criteria separately.
-Both threshold models achieve remarkable accuracy.
-
 \linespread{1.2}
 \begin{table}[h]
 	\centering
@@ -403,6 +398,12 @@ Both threshold models achieve remarkable accuracy.
 	\end{tabular}
 \end{table}
 \linespread{1.0}
+
+We use these thresholds as criteria to judge the authenticity of a UHD image.
+When the average relative energy is higher than the threshold, then we label it as a true UHD image.
+Otherwise, we label it as a fake UHD image.
+Table~\ref{tab:threshold-confusion-table} shows the confusion matrix of classification results for 1400 samples using $L_1$ criteria and $L_2$ criteria separately.
+Both threshold models achieve remarkable accuracy.
 
 We do realize that we are not testing the model on some hold-out set.
 But the model is too simple to cause overfitting, making the validation unnecessary.
