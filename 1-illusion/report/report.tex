@@ -247,6 +247,15 @@
   \subsection{Results}
   
   We use our own dataset for next-frame prediction and illusion detection. Due to the small size of our dataset, it is feasible for us to evaluate the effectiveness of our detection method on each image, both in the ``rotate'' group and the control group. We predict 22 frames for each image, and then the optical flow between the original image and its 7th frame is computed with Flownet and the traditional Lucas-Kanade method. Some representative images and their results are shown in Fig.~\ref{fig:representative-img-and-results}. For intuitiveness, the optical-flow vector field computed by Flownet is sampled on fixed interval and plotted in Fig.~\ref{fig:vector-fields}.
+
+  We generate an image in the style of the famous ``rotating snake'' illusion image, as shown in Fig.~\ref{fig:generated}. The ellipses used in the original rotating snake image are replaced with parallelograms. The image is drawn with HTML and CSS.
+
+  \begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{fig/generated.png}
+    \caption{Generated illusion image.}
+    \label{fig:generated}
+  \end{figure}
   
   \subsection{Observations}
   
